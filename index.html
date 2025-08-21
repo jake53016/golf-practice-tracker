@@ -1,8 +1,4 @@
-# Generate a new index.html that applies made/attempts to Chipping and Range,
-# calculates percentages for them in Stats, and formats the Sessions table accordingly.
-from pathlib import Path
-
-html = """<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="utf-8" />
@@ -447,7 +443,4 @@ Range — 30min
   </script>
 </body>
 </html>
-"""
-out = Path("/mnt/data/index_made_attempts_all.html")
-out.write_text(html, encoding="utf-8")
-print(str(out))
+
