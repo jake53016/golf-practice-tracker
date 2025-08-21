@@ -1,4 +1,8 @@
-<!DOCTYPE html>
+# Generate a new index.html that applies made/attempts to Chipping and Range,
+# calculates percentages for them in Stats, and formats the Sessions table accordingly.
+from pathlib import Path
+
+html = """<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="utf-8" />
@@ -14,7 +18,6 @@
     .wrap{max-width:980px;margin:0 auto;padding:16px}
     header{display:flex;gap:12px;align-items:center;justify-content:space-between;position:sticky;top:0;background:rgba(11,18,32,.85);backdrop-filter:blur(6px);padding:10px 16px;border-bottom:1px solid #1f2a44;z-index:5}
     .title{display:flex;gap:10px;align-items:center}
-    .badge{font-size:12px;border:1px solid #1f2a44;padding:2px 8px;border-radius:999px;color:var(--muted)}
     nav{display:flex;gap:8px}
     .tab{border:1px solid #1f2a44;background:var(--card);color:var(--ink);padding:8px 12px;border-radius:12px;cursor:pointer}
     .tab.active{border-color:var(--accent);box-shadow:0 0 0 2px rgba(56,189,248,.25) inset}
@@ -26,7 +29,7 @@
     h2{font-size:18px;color:var(--muted)}
     h3{font-size:16px;color:var(--muted)}
     label{font-size:13px;color:#c7d2fe}
-    input,select,textarea{width:100%;padding:10px 12px;border-radius:12px;border:1px solid #2a3558;background:#0c1427;color:var(--ink);outline:none}
+    input,textarea{width:100%;padding:10px 12px;border-radius:12px;border:1px solid #2a3558;background:#0c1427;color:var(--ink);outline:none}
     input[type=number]{appearance:textfield}
     .row{display:flex;gap:10px}
     .row>div{flex:1}
@@ -90,11 +93,11 @@
           <h3>Putting</h3>
           <div class="row">
             <div>
-              <label>Gate Drill — Made</label>
+              <label>Gate — Made</label>
               <input id="put_gate_m" type="number" min="0" />
             </div>
             <div>
-              <label>Gate Drill — Attempts</label>
+              <label>Gate — Attempts</label>
               <input id="put_gate_t" type="number" min="1" placeholder="20" />
             </div>
           </div>
@@ -128,12 +131,22 @@
           <h3>Chipping</h3>
           <div class="row">
             <div>
-              <label>Landing Towel Hits (of 30)</label>
-              <input id="chip_towel" type="number" min="0" max="30" />
+              <label>Towel — Hits</label>
+              <input id="chip_towel_m" type="number" min="0" />
             </div>
             <div>
-              <label>Up & Down Makes (of 9)</label>
-              <input id="chip_updown" type="number" min="0" max="9" />
+              <label>Towel — Attempts</label>
+              <input id="chip_towel_t" type="number" min="1" placeholder="30" />
+            </div>
+          </div>
+          <div class="row" style="margin-top:8px">
+            <div>
+              <label>Up & Down — Makes</label>
+              <input id="chip_updown_m" type="number" min="0" />
+            </div>
+            <div>
+              <label>Up & Down — Attempts</label>
+              <input id="chip_updown_t" type="number" min="1" placeholder="9" />
             </div>
           </div>
           <div style="margin-top:8px">
@@ -160,18 +173,30 @@
               <div class="row"><input id="wed3_y" type="number" placeholder="100"/><input id="wed3_c" type="number" placeholder="carry"/></div>
             </div>
             <div>
-              <label>Virtual 9 GIR (0–9)</label>
-              <input id="rng_gir" type="number" min="0" max="9" />
+              <label>Virtual 9 GIR — Makes</label>
+              <input id="rng_gir_m" type="number" min="0" />
+            </div>
+            <div>
+              <label>Virtual 9 GIR — Attempts</label>
+              <input id="rng_gir_t" type="number" min="1" placeholder="9" />
             </div>
           </div>
           <div class="row" style="margin-top:8px">
             <div>
-              <label>Narrow Target Hits – 7i (of 10)</label>
-              <input id="rng_iron" type="number" min="0" max="10" />
+              <label>7i Narrow Target — Makes</label>
+              <input id="rng_iron_m" type="number" min="0" />
             </div>
             <div>
-              <label>Narrow Target Hits – Driver (of 10)</label>
-              <input id="rng_drv" type="number" min="0" max="10" />
+              <label>7i — Attempts</label>
+              <input id="rng_iron_t" type="number" min="1" placeholder="10" />
+            </div>
+            <div>
+              <label>Driver Narrow Target — Makes</label>
+              <input id="rng_drv_m" type="number" min="0" />
+            </div>
+            <div>
+              <label>Driver — Attempts</label>
+              <input id="rng_drv_t" type="number" min="1" placeholder="10" />
             </div>
           </div>
           <div style="margin-top:8px">
@@ -200,11 +225,11 @@
             <div class="stat"><span class="small">Gate Drill</span><b id="avg_gate">–</b><span class="small">%</span></div>
             <div class="stat"><span class="small">Circle 3ft</span><b id="avg_circle">–</b><span class="small">%</span></div>
             <div class="stat"><span class="small">Lag Points</span><b id="avg_lag">–</b><span class="small">%</span></div>
-            <div class="stat"><span class="small">Towel Hits</span><b id="avg_towel">–</b><span class="small">/30</span></div>
-            <div class="stat"><span class="small">Up & Downs</span><b id="avg_updown">–</b><span class="small">/9</span></div>
-            <div class="stat"><span class="small">Virtual 9 GIR</span><b id="avg_gir">–</b><span class="small">/9</span></div>
-            <div class="stat"><span class="small">7i Hits</span><b id="avg_iron">–</b><span class="small">/10</span></div>
-            <div class="stat"><span class="small">Driver Hits</span><b id="avg_drv">–</b><span class="small">/10</span></div>
+            <div class="stat"><span class="small">Towel Hits</span><b id="avg_towel">–</b><span class="small">%</span></div>
+            <div class="stat"><span class="small">Up & Downs</span><b id="avg_updown">–</b><span class="small">%</span></div>
+            <div class="stat"><span class="small">Virtual 9 GIR</span><b id="avg_gir">–</b><span class="small">%</span></div>
+            <div class="stat"><span class="small">7i Narrow Target</span><b id="avg_iron">–</b><span class="small">%</span></div>
+            <div class="stat"><span class="small">Driver Narrow Target</span><b id="avg_drv">–</b><span class="small">%</span></div>
           </div>
         </div>
 
@@ -226,8 +251,8 @@
             <tr>
               <th>Date</th>
               <th>Putting (Gate / Circle / Lag)</th>
-              <th>Chip: Towel/Up&Down</th>
-              <th>Range: GIR 7i/Drv</th>
+              <th>Chipping (Towel / U&D)</th>
+              <th>Range (GIR / 7i / Dr)</th>
               <th>Notes</th>
               <th></th>
             </tr>
@@ -293,31 +318,33 @@ Range — 30min
       document.querySelectorAll('#log input, #log textarea').forEach(el=>{ if(el.type==='date') return; el.value=''; });
     };
 
+    function num(v){ return +v || 0; }
+
     // Save
     $('#save').onclick = ()=>{
       const s = {
         id: crypto.randomUUID(),
         date: $('#date').value || new Date().toISOString().slice(0,10),
         put: {
-          gate:{m:+($('#put_gate_m').value||0), t:+($('#put_gate_t').value||0)},
-          circle:{m:+($('#put_circle_m').value||0), t:+($('#put_circle_t').value||0)},
-          lag:{m:+($('#put_lag_m').value||0), t:+($('#put_lag_t').value||0)},
+          gate:{m:num($('#put_gate_m').value), t:num($('#put_gate_t').value)},
+          circle:{m:num($('#put_circle_m').value), t:num($('#put_circle_t').value)},
+          lag:{m:num($('#put_lag_m').value), t:num($('#put_lag_t').value)},
           notes: $('#put_notes').value||''
         },
         chip: {
-          towel:+($('#chip_towel').value||0),
-          updown:+($('#chip_updown').value||0),
+          towel:{m:num($('#chip_towel_m').value), t:num($('#chip_towel_t').value)},
+          updown:{m:num($('#chip_updown_m').value), t:num($('#chip_updown_t').value)},
           notes: $('#chip_notes').value||''
         },
         rng: {
           wedges:[
-            {y:+($('#wed1_y').value||0), c:+($('#wed1_c').value||0)},
-            {y:+($('#wed2_y').value||0), c:+($('#wed2_c').value||0)},
-            {y:+($('#wed3_y').value||0), c:+($('#wed3_c').value||0)}
+            {y:num($('#wed1_y').value), c:num($('#wed1_c').value)},
+            {y:num($('#wed2_y').value), c:num($('#wed2_c').value)},
+            {y:num($('#wed3_y').value), c:num($('#wed3_c').value)}
           ],
-          gir:+($('#rng_gir').value||0),
-          iron:+($('#rng_iron').value||0),
-          drv:+($('#rng_drv').value||0),
+          gir:{m:num($('#rng_gir_m').value), t:num($('#rng_gir_t').value)},
+          iron:{m:num($('#rng_iron_m').value), t:num($('#rng_iron_t').value)},
+          drv:{m:num($('#rng_drv_m').value), t:num($('#rng_drv_t').value)},
           notes: $('#rng_notes').value||''
         },
         notes: $('#notes').value||''
@@ -329,9 +356,98 @@ Range — 30min
       alert('Session saved.');
       render();
     };
+
+    // Helpers for %
+    function pct(pair){ return pair && pair.t>0 ? (pair.m/pair.t*100) : null; }
+    function fmtPair(pair){
+      if(!pair || !pair.t) return '–';
+      const p = ((pair.m/pair.t)*100).toFixed(0);
+      return `${pair.m}/${pair.t} (${p}%)`;
+    }
+    function avgPct(list, getter, take=10){
+      const slice = list.slice(0,take);
+      const vals = slice.map(s=> getter(s)).filter(v=> v!=null && !isNaN(v));
+      if(!vals.length) return null; return (vals.reduce((a,b)=>a+b,0)/vals.length).toFixed(1);
+    }
+    function avgRaw(list, getter, take=10){
+      const slice = list.slice(0,take);
+      const vals = slice.map(s=> getter(s)).filter(v=> typeof v==='number' && !isNaN(v));
+      if(!vals.length) return null; return (vals.reduce((a,b)=>a+b,0)/vals.length).toFixed(1);
+    }
+
+    function render(){
+      const list = store.load();
+
+      // Averages (percentages for putting, chipping, range accuracy)
+      document.getElementById('avg_gate').textContent = (avgPct(list, s=> pct(s.put.gate)) ?? '–') + (list.length?'%':'');
+      document.getElementById('avg_circle').textContent = (avgPct(list, s=> pct(s.put.circle)) ?? '–') + (list.length?'%':'');
+      document.getElementById('avg_lag').textContent = (avgPct(list, s=> pct(s.put.lag)) ?? '–') + (list.length?'%':'');
+      document.getElementById('avg_towel').textContent = (avgPct(list, s=> pct(s.chip.towel)) ?? '–') + (list.length?'%':'');
+      document.getElementById('avg_updown').textContent = (avgPct(list, s=> pct(s.chip.updown)) ?? '–') + (list.length?'%':'');
+      document.getElementById('avg_gir').textContent = (avgPct(list, s=> pct(s.rng.gir)) ?? '–') + (list.length?'%':'');
+      document.getElementById('avg_iron').textContent = (avgPct(list, s=> pct(s.rng.iron)) ?? '–') + (list.length?'%':'');
+      document.getElementById('avg_drv').textContent = (avgPct(list, s=> pct(s.rng.drv)) ?? '–') + (list.length?'%':'');
+
+      // Table
+      const tbody = document.querySelector('#tbl tbody');
+      tbody.innerHTML = '';
+      list.forEach(s=>{
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td><span class="pill">${s.date}</span></td>
+          <td>Gate ${fmtPair(s.put.gate)} • Circle ${fmtPair(s.put.circle)} • Lag ${fmtPair(s.put.lag)}</td>
+          <td>Towel ${fmtPair(s.chip.towel)} • U&D ${fmtPair(s.chip.updown)}</td>
+          <td>GIR ${fmtPair(s.rng.gir)} • 7i ${fmtPair(s.rng.iron)} • Dr ${fmtPair(s.rng.drv)}</td>
+          <td class="small">${(s.notes||'').slice(0,60)}</td>
+          <td><button class="btn ghost" data-del="${s.id}">Delete</button></td>`;
+        tbody.appendChild(tr);
+      });
+
+      tbody.querySelectorAll('button[data-del]').forEach(b=>b.onclick=()=>{
+        const id = b.dataset.del;
+        const list = store.load().filter(x=>x.id!==id);
+        store.save(list); render();
+      });
+    }
+
+    render();
+
+    // Export / Import / Reset
+    document.getElementById('exportBtn').onclick = ()=>{
+      const data = {plan: store.loadPlan()||template, sessions: store.load()};
+      const blob = new Blob([JSON.stringify(data,null,2)], {type:'application/json'});
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = 'golf_practice_backup.json';
+      a.click();
+    };
+
+    document.getElementById('importFile').addEventListener('change', (e)=>{
+      const file = e.target.files[0]; if(!file) return;
+      const reader = new FileReader();
+      reader.onload = ()=>{
+        try{
+          const data = JSON.parse(reader.result);
+          if(data.plan) store.savePlan(data.plan);
+          if(Array.isArray(data.sessions)) store.save(data.sessions);
+          loadPlanUI(); render();
+          alert('Import complete.');
+        }catch(err){ alert('Import failed. Invalid file.'); }
+      };
+      reader.readAsText(file);
+    });
+
+    document.getElementById('resetAll').onclick = ()=>{
+      if(confirm('This will delete ALL saved sessions and plan text on this device. Proceed?')){
+        localStorage.removeItem(store.key);
+        localStorage.removeItem(store.planKey);
+        loadPlanUI(); render();
+      }
+    };
   </script>
 </body>
 </html>
-
-
-
+"""
+out = Path("/mnt/data/index_made_attempts_all.html")
+out.write_text(html, encoding="utf-8")
+print(str(out))
