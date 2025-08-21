@@ -55,7 +55,7 @@
     <nav>
       <button class="tab active" data-tab="plan">Plan</button>
       <button class="tab" data-tab="log">Log Practice</button>
-      <button class="tab" data-tab="history">Stats</button>
+      <button class="tab" data-tab="stats">Stats</button>
     </nav>
   </header>
 
@@ -191,8 +191,8 @@
       </div>
     </section>
 
-    <!-- HISTORY TAB -->
-    <section id="history" class="grid hide">
+    <!-- STATS TAB -->
+    <section id="stats" class="grid hide">
       <div class="grid cards">
         <div class="card">
           <h2>Averages (Last 10)</h2>
@@ -258,7 +258,7 @@
       const tab = btn.dataset.tab;
       document.querySelectorAll('main section').forEach(s=>s.classList.add('hide'));
       document.getElementById(tab).classList.remove('hide');
-      if(tab==='history') render();
+      if(tab==='stats') render();
     }));
 
     // Plan template
@@ -332,5 +332,6 @@ Range — 30min
   </script>
 </body>
 </html>
+
 
 
