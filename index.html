@@ -77,17 +77,12 @@
     <section id="log" class="grid hide">
       <div class="card">
         <h2>Session Details</h2>
-        <div class="row">
-          <div>
-            <label>Date</label>
-            <input id="date" type="date" />
+          <div class="row">
+            <div>
+              <label>Date</label>
+              <input id="date" type="date" />
+            </div>
           </div>
-          <div>
-            <label>Duration (min)</label>
-            <input id="minutes" type="number" min="10" step="5" placeholder="90" />
-          </div>
-        </div>
-      </div>
 
       <div class="grid cards">
         <div class="card">
@@ -274,7 +269,6 @@
       const s = {
         id: crypto.randomUUID(),
         date: $('#date').value || new Date().toISOString().slice(0,10),
-        minutes: +($('#minutes').value||0),
         put: {
           gate:+($('#put_gate').value||0),
           circle:+($('#put_circle').value||0),
@@ -385,5 +379,6 @@
   </script>
 </body>
 </html>
+
 
 
