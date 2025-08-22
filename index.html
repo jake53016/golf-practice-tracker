@@ -65,11 +65,11 @@
     <section id="plan" class="grid">
       <div class="card">
         <div class="flex-between">
-          <h2>Plan Builder</h2>
+          <h2>Practice Plan</h2>
           <div class="row" style="flex:0 1 520px">
             <div>
-              <label>Saved Plans</label>
-              <select id="planPicker"></select>
+              <label>Saved Practices</label>
+              <select id="practicePicker"></select>
             </div>
             <div style="flex:0 0 auto;align-self:flex-end;display:flex;gap:8px">
               <button class="btn ghost" id="savePlanBtn">Save</button>
@@ -81,11 +81,11 @@
         <div class="section">
           <div class="row">
             <div>
-              <label>Plan Name</label>
+              <label>Practice Plan Name</label>
               <input id="planName" placeholder="e.g., Short Game Focus" />
             </div>
             <div>
-              <label>Today’s Focus (optional)</label>
+              <label>Practice Goals (optional)</label>
               <input id="planFocus" placeholder="e.g., Speed control, Up & Down %" />
             </div>
           </div>
@@ -229,13 +229,13 @@
   // ---------- PLAN TAB ----------
   function renderPlan(){
     // picker for plans
-    const planPicker = $('#planPicker'); planPicker.innerHTML = '';
-    plans.forEach(p=> planPicker.appendChild(el('option',{value:p.id}, p.name)));
-    planPicker.value = activePlanId;
+    const practicePicker = $('#practicePicker'); practicePicker.innerHTML = '';
+    plans.forEach(p=> practicePicker.appendChild(el('option',{value:p.id}, p.name)));
+    practicePicker.value = activePlanId;
 
     // AUTO-LOAD ON CHANGE (no button required)
-    planPicker.onchange = ()=>{
-      activePlanId = planPicker.value;
+    practicePicker.onchange = ()=>{
+      activePlanId = practicePicker.value;
       localStorage.setItem(store.keyActivePlan, activePlanId);
       // re-render plan + log so UI reflects the newly selected plan immediately
       renderPlan();
