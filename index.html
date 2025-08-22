@@ -241,7 +241,7 @@
     document.querySelectorAll('main section').forEach(s=>s.classList.add('hide'));
     document.getElementById(tab).classList.remove('hide');
     if(tab==='plan') renderPlan();
-    if(tab==='log') renderLog();
+    if(tab==='track') renderTrack();
     if(tab==='stats') renderStats();
   }));
 
@@ -262,7 +262,7 @@
       activePlanId = practicePicker.value;
       localStorage.setItem(store.keyActivePlan, activePlanId);
       renderPlan();
-      renderLog();
+      renderTrack();
     };
 
     // Plan fields
@@ -378,7 +378,7 @@
       store.save(store.keyPlans, plans);
       activePlanId = 'default';
       localStorage.setItem(store.keyActivePlan, activePlanId);
-      renderPlan(); renderLog();
+      renderPlan(); renderTrack();
     };
 
     // IMPORTANT CHANGE:
@@ -388,8 +388,8 @@
     $('#planFocus').onchange = ()=>{ const p=getPlan(activePlanId); p.focus=$('#planFocus').value; store.save(store.keyPlans, plans); };
   }
 
-  // ---------- LOG TAB ----------
-  function renderLog(){
+  // ---------- Tr TAB ----------
+  function renderTrack(){
     const plan = getPlan(activePlanId);
     $('#activePlanName').textContent = plan ? plan.name : '–';
     $('#date').valueAsDate = new Date();
@@ -544,7 +544,7 @@
         localStorage.setItem(store.keyActivePlan, activePlanId);
         store.save(store.keySessions, sessions);
         alert('Import complete.');
-        renderPlan(); renderLog(); renderStats();
+        renderPlan(); renderTrack(); renderStats();
       }catch(err){ alert('Import failed. Invalid file.'); }
     };
     reader.readAsText(file);
@@ -563,7 +563,7 @@
     store.save(store.keyPlans, plans);
     localStorage.setItem(store.keyActivePlan, activePlanId);
     sessions = [];
-    renderPlan(); renderLog(); renderStats();
+    renderPlan(); renderTrack(); renderStats();
   };
 
   // initial render
