@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Golf Practice Tracker</title>
+  <title>Golf Practice Tracker – Dynamic Plans</title>
   <meta name="theme-color" content="#0ea5e9" />
   <style>
     :root{--bg:#0b1220;--card:#101829;--ink:#e5ecff;--muted:#9db4ff;--accent:#38bdf8;--ok:#22c55e;--bad:#ef4444;--warn:#f59e0b}
@@ -50,12 +50,12 @@
       <svg width="28" height="28" viewBox="0 0 24 24" fill="none"><path d="M20 21H4m4.5-5.5L20 3l-5.5 11.5L9 15.5Z" stroke="#38bdf8" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><circle cx="6" cy="18" r="2" stroke="#38bdf8"/></svg>
       <div>
         <h1>Golf Practice Tracker</h1>
-        <div class="small">Plan Practice • Track Results • Review Stats</div>
+        <div class="small">Dynamic Plans • Drill Library • Stats on-device</div>
       </div>
     </div>
     <nav>
       <button class="tab active" data-tab="plan">Plan</button>
-      <button class="tab" data-tab="track">Track</button>
+      <button class="tab" data-tab="log">Log</button>
       <button class="tab" data-tab="stats">Stats</button>
     </nav>
   </header>
@@ -65,14 +65,15 @@
     <section id="plan" class="grid">
       <div class="card">
         <div class="flex-between">
-          <h2>Practice Plan</h2>
+          <h2>Plan Builder</h2>
           <div class="row" style="flex:0 1 520px">
             <div>
-              <label>Saved Practice Plans</label>
-              <select id="practicePicker"></select>
+              <label>Saved Plans</label>
+              <select id="planPicker"></select>
             </div>
             <div style="flex:0 0 auto;align-self:flex-end;display:flex;gap:8px">
-              <button class="btn ghost" id="savePlanBtn">Save</button>
+              <button class="btn" id="loadPlanBtn">Load</button>
+              <button class="btn ghost" id="savePlanBtn">Save As…</button>
               <button class="btn warn" id="deletePlanBtn">Delete</button>
             </div>
           </div>
@@ -81,37 +82,37 @@
         <div class="section">
           <div class="row">
             <div>
-              <label>Name</label>
+              <label>Plan Name</label>
               <input id="planName" placeholder="e.g., Short Game Focus" />
             </div>
             <div>
-              <label>Practice Goals</label>
-              <input id="planFocus" placeholder="Optional" />
+              <label>Today’s Focus (optional)</label>
+              <input id="planFocus" placeholder="e.g., Speed control, Up & Down %" />
             </div>
           </div>
         </div>
 
         <div class="section">
-          <h3>Drills</h3>
+          <h3>Pick Drills</h3>
           <p class="small">Tap to include drills in this plan. You can edit or create drills below.</p>
           <div id="pickers"></div>
         </div>
 
         <div class="section">
           <h3>Drill Library</h3>
-          <p class="small">Add or edit drills. Types:<br/>• <b>%</b> → Made/Attempts stored + %<br/>• <b>Points</b> → Points/Max stored + %<br/>• <b>Note</b> → free text per session (not in % stats)</p>
+          <p class="small">Add or edit drills. Types:<br/>• <b>Made/Attempts</b> (ma) → stores m/t and %<br/>• <b>Points/Max</b> (pm) → stores points/max and %<br/>• <b>Note</b> (note) → free text per session (not in % stats)</p>
           <div id="library"></div>
           <div style="margin-top:10px"><button class="btn" id="addDrillBtn">Add Drill</button></div>
         </div>
       </div>
     </section>
 
-    <!-- TRACK TAB -->
-    <section id="track" class="grid hide">
+    <!-- LOG TAB -->
+    <section id="log" class="grid hide">
       <div class="card">
         <div class="flex-between">
-          <h2>Drill Tracker</h2>
-          <div class="small">Name: <span id="activePlanName">–</span></div>
+          <h2>Log Session</h2>
+          <div class="small">Active Plan: <span id="activePlanName">–</span></div>
         </div>
         <div class="row">
           <div>
@@ -125,7 +126,7 @@
         </div>
       </div>
 
-      <div id="trackingForm"></div>
+      <div id="logForm"></div>
 
       <div class="card">
         <div style="display:flex;gap:8px">
@@ -190,48 +191,24 @@
 
   // Default Drill Library
   const defaultDrills = [
-    {id:'putt_gate', name:'Gate Drill', cat:'Putting', type:'%', defAttempts:20},
-    {id:'putt_circle', name:'Circle Drill', cat:'Putting', type:'%', defAttempts:10},
-    {id:'putt_lag', name:'Lag Putting Drill', cat:'Putting', type:'Points', defAttempts:15},
-    {id:'chip_towel', name:'Towel Drill', cat:'Chipping', type:'%', defAttempts:30},
-    {id:'chip_updown', name:'Up & Downs', cat:'Chipping', type:'%', defAttempts:9},
-    {id:'rng_gir', name:'Virtual 9', cat:'Range', type:'%', defAttempts:9},
-    {id:'rng_iron', name:'Iron Targets', cat:'Range', type:'%', defAttempts:10},
-    {id:'rng_drv', name:'Driver Targets', cat:'Range', type:'%', defAttempts:10},
+    {id:'put_gate', name:'Gate', cat:'Putting', type:'ma', defAttempts:20},
+    {id:'put_circle', name:'Circle 3ft', cat:'Putting', type:'ma', defAttempts:10},
+    {id:'put_lag', name:'Lag Points', cat:'Putting', type:'pm', defAttempts:15},
+    {id:'chip_towel', name:'Towel', cat:'Chipping', type:'ma', defAttempts:30},
+    {id:'chip_updown', name:'Up & Down', cat:'Chipping', type:'ma', defAttempts:9},
+    {id:'rng_gir', name:'Virtual 9 GIR', cat:'Range', type:'ma', defAttempts:9},
+    {id:'rng_iron', name:'7i Narrow Target', cat:'Range', type:'ma', defAttempts:10},
+    {id:'rng_drv', name:'Driver Narrow Target', cat:'Range', type:'ma', defAttempts:10},
     {id:'rng_note', name:'Range Notes', cat:'Range', type:'note'}
   ];
 
-  // ---------- STATE ----------
+  // State
   let drills = store.load(store.keyDrills, defaultDrills);
-  let plans = store.load(store.keyPlans, []); // start empty; we'll ensure Default below
-  let activePlanId = localStorage.getItem(store.keyActivePlan) || 'default';
+  let plans = store.load(store.keyPlans, [
+    {id:'plan_std', name:'Standard Session', focus:'', drills:['put_gate','put_circle','put_lag','chip_towel','chip_updown','rng_gir','rng_iron','rng_drv']}
+  ]);
+  let activePlanId = localStorage.getItem(store.keyActivePlan) || plans[0].id;
   let sessions = store.load(store.keySessions, []);
-
-  // ---- Validation helpers ----
-  const validName = (name)=> {
-    const t = (name ?? '').trim();
-    return t.length > 0 && t.toLowerCase() !== 'null';
-  };
-  const enforceDefaultName = ()=> {
-    const p = plans.find(x=>x.id==='default');
-    if (p && !validName(p.name)) { p.name = 'Default'; }
-  };
-
-  // Ensure non-deletable DEFAULT plan exists; on first run, include ALL current drills
-  function ensureDefaultPlan() {
-    const hasDefault = plans.some(p => p.id === 'default');
-    if (!hasDefault) {
-      const allDrillIds = drills.map(d => d.id);
-      plans.unshift({ id: 'default', name: 'Default', focus: '', drills: allDrillIds });
-      store.save(store.keyPlans, plans);
-    }
-    enforceDefaultName();
-    if (!plans.some(p => p.id === activePlanId)) {
-      activePlanId = 'default';
-      localStorage.setItem(store.keyActivePlan, activePlanId);
-    }
-  }
-  ensureDefaultPlan();
 
   // Tabs
   document.querySelectorAll('.tab').forEach(btn=>btn.addEventListener('click',()=>{
@@ -241,7 +218,7 @@
     document.querySelectorAll('main section').forEach(s=>s.classList.add('hide'));
     document.getElementById(tab).classList.remove('hide');
     if(tab==='plan') renderPlan();
-    if(tab==='track') renderTrack();
+    if(tab==='log') renderLog();
     if(tab==='stats') renderStats();
   }));
 
@@ -249,51 +226,26 @@
   const byCat = (list)=> list.reduce((m,d)=>{ (m[d.cat]??=[]).push(d); return m; },{});
   const getPlan = (id)=> plans.find(p=>p.id===id);
   const getDrill = (id)=> drills.find(d=>d.id===id);
-  const isNoteType = (t)=> (t||'').toLowerCase()==='note' || t==='Other';
 
   // ---------- PLAN TAB ----------
   function renderPlan(){
     // picker for plans
-    const practicePicker = $('#practicePicker'); practicePicker.innerHTML = '';
-    plans.forEach(p=> practicePicker.appendChild(el('option',{value:p.id}, p.name)));
-    practicePicker.value = activePlanId;
-
-    // AUTO-LOAD ON CHANGE
-    practicePicker.onchange = ()=>{
-      activePlanId = practicePicker.value;
-      localStorage.setItem(store.keyActivePlan, activePlanId);
-      renderPlan();
-      renderTrack();
-    };
-
-    // Plan fields
-    const plan = getPlan(activePlanId);
-    $('#planName').value = plan?.name ?? '';
-    $('#planFocus').value = plan?.focus ?? '';
-
-    // Disable delete button for Default
-    const deleteBtn = $('#deletePlanBtn');
-    if (activePlanId === 'default') {
-      deleteBtn.disabled = true;
-      deleteBtn.title = 'The Default plan cannot be deleted';
-      deleteBtn.classList.add('ghost');
-    } else {
-      deleteBtn.disabled = false;
-      deleteBtn.title = '';
-      deleteBtn.classList.remove('ghost');
-    }
+    const planPicker = $('#planPicker'); planPicker.innerHTML = '';
+    plans.forEach(p=> planPicker.appendChild(el('option',{value:p.id}, p.name)));
+    planPicker.value = activePlanId;
+    $('#planName').value = getPlan(activePlanId)?.name ?? '';
+    $('#planFocus').value = getPlan(activePlanId)?.focus ?? '';
 
     // drill pickers (chips)
     const pickers = $('#pickers'); pickers.innerHTML='';
     const cats = byCat(drills);
-    const badge = (t)=> t==='%' ? 'm/a' : (t==='Points' ? 'pts' : 'note');
     Object.keys(cats).forEach(cat=>{
       const card = el('div',{class:'card'});
       card.appendChild(el('h3',{}, cat));
       const list = el('div',{class:'list'});
       cats[cat].forEach(d=>{
         const chip = el('div',{class:'chip'+(getPlan(activePlanId).drills.includes(d.id)?' sel':'')});
-        chip.textContent = `${d.name} (${badge(d.type)})`;
+        chip.textContent = d.name + (d.type!=='note' ? ` (${d.type==='ma'?'m/a':'pts'})` : ' (note)');
         chip.onclick = ()=>{
           const plan = getPlan(activePlanId);
           const has = plan.drills.includes(d.id);
@@ -319,7 +271,7 @@
         ${['Putting','Chipping','Range'].map(c=>`<option ${d.cat===c?'selected':''}>${c}</option>`).join('')}
       </select>`));
       tr.appendChild(el('td',{}, `<select data-k="type" data-id="${d.id}">
-        ${['%','Points','Note'].map(t=>`<option ${d.type===t?'selected':''} value="${t}">${t}</option>`).join('')}
+        ${['ma','pm','note'].map(t=>`<option ${d.type===t?'selected':''} value="${t}">${t}</option>`).join('')}
       </select>`));
       tr.appendChild(el('td',{}, `<input data-k="defAttempts" data-id="${d.id}" type="number" min="0" value="${d.defAttempts??0}">`));
       tr.appendChild(el('td',{}, `<button class="btn ghost" data-del="${d.id}">Delete</button>`));
@@ -330,7 +282,7 @@
 
     // listeners for edit
     lib.querySelectorAll('input[data-id], select[data-id]').forEach(inp=>{
-      inp.addEventListener('change', ()=>{
+      inp.addEventListener('change', (e)=>{
         const id = inp.getAttribute('data-id');
         const k = inp.getAttribute('data-k');
         const d = getDrill(id);
@@ -343,6 +295,7 @@
         const id = btn.getAttribute('data-del');
         if(!confirm('Delete this drill from library?')) return;
         drills = drills.filter(d=>d.id!==id);
+        // remove from plans
         plans.forEach(p=> p.drills = p.drills.filter(x=>x!==id));
         store.save(store.keyDrills, drills);
         store.save(store.keyPlans, plans);
@@ -350,50 +303,57 @@
       };
     });
 
-    // Save plan (validate name). NOTE: plan name changes are ONLY committed here.
-    $('#savePlanBtn').onclick = ()=>{
-      const p = getPlan(activePlanId);
-      const nameInput = $('#planName').value;
-      if(!validName(nameInput)) {
-        alert('Plan name cannot be empty.');
-        $('#planName').value = p.name || (activePlanId==='default' ? 'Default' : '');
-        return;
-      }
-      p.name = nameInput.trim();
-      if(activePlanId==='default' && p.name.toLowerCase()==='null') p.name='Default';
-      p.focus = $('#planFocus').value || '';
-      store.save(store.keyPlans, plans);
-      alert('Plan saved.');
-      enforceDefaultName();
-      store.save(store.keyPlans, plans);
+    // add drill
+    $('#addDrillBtn').onclick = ()=>{
+      const name = prompt('Drill name (e.g., 5ft Circle)'); if(!name) return;
+      const cat = prompt('Category (Putting / Chipping / Range)','Putting') || 'Putting';
+      const type = prompt('Type (ma/pm/note)','ma') || 'ma';
+      const defAttempts = +(prompt('Default attempts (e.g., 20)','20') || 0);
+      const id = name.toLowerCase().replace(/[^a-z0-9]+/g,'_') + '_' + Math.random().toString(36).slice(2,6);
+      drills.push({id,name,cat,type,defAttempts});
+      store.save(store.keyDrills, drills);
       renderPlan();
     };
 
-    // Delete plan (block Default)
+    // plan buttons
+    $('#loadPlanBtn').onclick = ()=>{
+      activePlanId = planPicker.value;
+      localStorage.setItem(store.keyActivePlan, activePlanId);
+      $('#planName').value = getPlan(activePlanId).name;
+      $('#planFocus').value = getPlan(activePlanId).focus || '';
+      renderPlan();
+    };
+    $('#savePlanBtn').onclick = ()=>{
+      const name = prompt('Save this as a new plan name:', $('#planName').value || 'My Plan'); if(!name) return;
+      const id = 'plan_' + Math.random().toString(36).slice(2,8);
+      const cur = getPlan(activePlanId);
+      const copy = {id, name, focus: $('#planFocus').value, drills: [...cur.drills]};
+      plans.push(copy);
+      store.save(store.keyPlans, plans);
+      activePlanId = id; localStorage.setItem(store.keyActivePlan, id);
+      renderPlan();
+    };
     $('#deletePlanBtn').onclick = ()=>{
-      if (activePlanId === 'default') {
-        alert('The Default plan cannot be deleted.');
-        return;
-      }
-      if (!confirm('Delete this plan?')) return;
+      if(plans.length<=1) return alert('Keep at least one plan.');
+      if(!confirm('Delete this plan?')) return;
       plans = plans.filter(p=>p.id!==activePlanId);
       store.save(store.keyPlans, plans);
-      activePlanId = 'default';
-      localStorage.setItem(store.keyActivePlan, activePlanId);
-      renderPlan(); renderTrack();
+      activePlanId = plans[0].id; localStorage.setItem(store.keyActivePlan, activePlanId);
+      renderPlan();
     };
 
-    // Optional: keep goals live-save
+    // keep name/focus synced
+    $('#planName').onchange = ()=>{ const p=getPlan(activePlanId); p.name=$('#planName').value; store.save(store.keyPlans, plans); };
     $('#planFocus').onchange = ()=>{ const p=getPlan(activePlanId); p.focus=$('#planFocus').value; store.save(store.keyPlans, plans); };
   }
 
-  // ---------- TRACK TAB ----------
-  function renderTrack(){
+  // ---------- LOG TAB ----------
+  function renderLog(){
     const plan = getPlan(activePlanId);
     $('#activePlanName').textContent = plan ? plan.name : '–';
     $('#date').valueAsDate = new Date();
 
-    const form = $('#trackingForm'); form.innerHTML = '';
+    const form = $('#logForm'); form.innerHTML = '';
     const cats = byCat(plan.drills.map(getDrill).filter(Boolean));
     Object.keys(cats).forEach(cat=>{
       const card = el('div',{class:'card'});
@@ -401,19 +361,19 @@
       const grid = el('div',{class:'row'});
       cats[cat].forEach(d=>{
         const group = el('div',{});
-        if(d.type==='%'){
+        if(d.type==='ma'){
           group.innerHTML = `<label>${d.name} — Made / Attempts</label>
           <div class="row">
             <input type="number" min="0" id="m_${d.id}" placeholder="made">
             <input type="number" min="1" id="t_${d.id}" placeholder="${d.defAttempts||''}">
           </div>`;
-        }else if(d.type==='Points'){
+        }else if(d.type==='pm'){
           group.innerHTML = `<label>${d.name} — Points / Max</label>
           <div class="row">
             <input type="number" min="0" id="m_${d.id}" placeholder="points">
             <input type="number" min="1" id="t_${d.id}" placeholder="${d.defAttempts||''}">
           </div>`;
-        }else{ // Note/Other
+        }else{ // note
           group.innerHTML = `<label>${d.name} — Note</label>
           <input type="text" id="n_${d.id}" placeholder="notes for this drill">`;
         }
@@ -424,14 +384,14 @@
     });
 
     $('#clearForm').onclick = ()=>{
-      document.querySelectorAll('#track input').forEach(i=>{ if(i.type==='date') return; i.value=''; });
+      document.querySelectorAll('#log input').forEach(i=>{ if(i.type==='date') return; i.value=''; });
     };
 
     $('#saveSession').onclick = ()=>{
       const measures = {};
       plan.drills.forEach(id=>{
         const d = getDrill(id);
-        if(d.type==='%' || d.type==='Points'){
+        if(d.type==='ma' || d.type==='pm'){
           const m = +($('#m_'+id)?.value||0), t = +($('#t_'+id)?.value||0);
           measures[id] = {type:d.type, m, t};
         }else{
@@ -457,6 +417,7 @@
 
   // ---------- STATS TAB ----------
   function renderStats(){
+    // Plan filter
     const sel = $('#statsPlanFilter'); sel.innerHTML = '<option value="">All plans</option>';
     plans.forEach(p=> sel.appendChild(el('option',{value:p.id}, p.name)));
     sel.value = '';
@@ -464,8 +425,9 @@
     const summary = $('#statsSummary'); const tbody = $('#tbl tbody');
     function computeAndRender(filterPlanId=''){
       summary.innerHTML=''; tbody.innerHTML='';
+      // Aggregate per drill across last 50 sessions (filtered)
       const recent = sessions.filter(s=> !filterPlanId || s.planId===filterPlanId).slice(0, 50);
-      const agg = {};
+      const agg = {}; // id -> {name,cat,type, vals[]}
       recent.forEach(s=>{
         Object.entries(s.measures||{}).forEach(([id,val])=>{
           const d = getDrill(id); if(!d) return;
@@ -473,8 +435,9 @@
           agg[id].vals.push(val);
         });
       });
+      // Build stat chips
       Object.entries(agg).forEach(([id,info])=>{
-        if(isNoteType(info.type)) return;
+        if(info.type==='note') return;
         const pct = (arr)=>{
           const nums = arr.filter(x=>x.t>0).map(x=> (x.m/x.t*100));
           if(!nums.length) return null;
@@ -486,11 +449,12 @@
         summary.appendChild(card);
       });
 
+      // Sessions table
       recent.forEach(s=>{
         const tr = el('tr');
         const drillsHTML = Object.entries(s.measures).map(([id,val])=>{
           const d = getDrill(id); if(!d) return '';
-          if(isNoteType(val.type)){ return `<div><b>${d.name}</b>: ${val.n}</div>`; }
+          if(val.type==='note'){ return `<div><b>${d.name}</b>: ${val.n}</div>`; }
           const p = (val.t>0)? Math.round(val.m/val.t*100)+'%' : '–';
           return `<div><b>${d.name}</b>: ${val.m}/${val.t} (${p})</div>`;
         }).join('');
@@ -516,7 +480,9 @@
 
   // Export / Import / Reset
   document.getElementById('exportBtn').onclick = ()=>{
-    const data = { drills, plans, activePlanId, sessions };
+    const data = {
+      drills, plans, activePlanId, sessions
+    };
     const blob = new Blob([JSON.stringify(data,null,2)], {type:'application/json'});
     const a = document.createElement('a');
     a.href = URL.createObjectURL(blob);
@@ -533,17 +499,12 @@
         if(Array.isArray(data.plans)) plans = data.plans;
         if(data.activePlanId) activePlanId = data.activePlanId;
         if(Array.isArray(data.sessions)) sessions = data.sessions;
-
-        // Enforce valid names and default presence after import
-        (plans||[]).forEach(p=>{ if(!validName(p.name)) p.name = (p.id==='default' ? 'Default' : 'My Plan'); });
-        ensureDefaultPlan();
-
         store.save(store.keyDrills, drills);
         store.save(store.keyPlans, plans);
         localStorage.setItem(store.keyActivePlan, activePlanId);
         store.save(store.keySessions, sessions);
         alert('Import complete.');
-        renderPlan(); renderTrack(); renderStats();
+        renderPlan(); renderLog(); renderStats();
       }catch(err){ alert('Import failed. Invalid file.'); }
     };
     reader.readAsText(file);
@@ -555,14 +516,10 @@
     localStorage.removeItem(store.keyActivePlan);
     localStorage.removeItem(store.keySessions);
     drills = defaultDrills.slice();
-    plans = []; // will be refilled by ensureDefaultPlan()
-    activePlanId = 'default';
-    ensureDefaultPlan();
-    store.save(store.keyDrills, drills);
-    store.save(store.keyPlans, plans);
-    localStorage.setItem(store.keyActivePlan, activePlanId);
+    plans = [{id:'plan_std', name:'Standard Session', focus:'', drills:['put_gate','put_circle','put_lag','chip_towel','chip_updown','rng_gir','rng_iron','rng_drv']}];
+    activePlanId = plans[0].id;
     sessions = [];
-    renderPlan(); renderTrack(); renderStats();
+    renderPlan(); renderLog(); renderStats();
   };
 
   // initial render
