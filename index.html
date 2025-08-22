@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Golf Stats</title>
+  <title>Golf Stats (Dexie v0)</title>
   <meta name="theme-color" content="#0ea5e9" />
   <style>
     :root{--bg:#0b1220;--card:#101829;--ink:#e5ecff;--muted:#9db4ff;--accent:#38bdf8;--ok:#22c55e;--bad:#ef4444;--warn:#f59e0b}
@@ -13,9 +13,6 @@
     a{color:var(--accent)}
     header{display:flex;gap:12px;align-items:center;justify-content:space-between;position:sticky;top:0;background:rgba(11,18,32,.85);backdrop-filter:blur(6px);padding:10px 16px;border-bottom:1px solid #1f2a44;z-index:5}
     .title{display:flex;gap:10px;align-items:center}
-    nav{display:flex;gap:8px;flex-wrap:wrap}
-    .tab{border:1px solid #1f2a44;background:var(--card);color:var(--ink);padding:8px 12px;border-radius:12px;cursor:pointer;text-decoration:none}
-    .tab.active{border-color:var(--accent);box-shadow:0 0 0 2px rgba(56,189,248,.25) inset}
     .wrap{max-width:1100px;margin:0 auto;padding:16px}
     .grid{display:grid;gap:12px}
     .cards{grid-template-columns:repeat(auto-fit,minmax(260px,1fr))}
@@ -33,6 +30,8 @@
     .hide{display:none}
     footer{color:#9db4ff}
   </style>
+  <!-- Dexie (IndexedDB wrapper) -->
+  <script src="https://unpkg.com/dexie@latest/dist/dexie.min.js"></script>
 </head>
 <body>
   <header>
@@ -40,15 +39,9 @@
       <svg width="28" height="28" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M20 21H4m4.5-5.5L20 3l-5.5 11.5L9 15.5Z" stroke="#38bdf8" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><circle cx="6" cy="18" r="2" stroke="#38bdf8"/></svg>
       <div>
         <h1>Golf Stats</h1>
-        <div class="small">Summary • Practice • Stats</div>
+        <div class="small">Dexie • Summary • Practice • Stats</div>
       </div>
     </div>
-    <nav aria-label="Primary">
-      <a class="tab" data-route="home" href="#home">Home</a>
-      <a class="tab" data-route="practice" href="#practice">Practice</a>
-      <a class="tab" data-route="stats" href="#stats">Stats</a>
-      <a class="tab" data-route="settings" href="#settings">Settings</a>
-    </nav>
   </header>
 
   <main class="wrap">
@@ -57,10 +50,11 @@
       <div class="grid cards">
         <div class="card">
           <h2>Get started</h2>
-          <p class="small">No setup required. Start a practice now or head to Stats any time.</p>
+          <p class="small">No defaults are loaded. Start a practice or go to Stats.</p>
           <div class="row">
             <a class="btn" href="#practice" id="ctaStart">Start new practice</a>
             <a class="btn ghost" href="#stats">View stats</a>
+            <a class="btn ghost" href="#settings">Settings</a>
           </div>
         </div>
         <div class="card">
@@ -82,7 +76,7 @@
     <section id="practice" class="grid hide">
       <div class="card">
         <h2>Practice</h2>
-        <p class="small">This is the practice area. In the next step, we'll add a simple flow to capture results (made/attempts, points, or notes) without requiring plans.</p>
+        <p class="small">This is the practice area. Next step: add a simple entry flow (%, Points, Other) without requiring plans.</p>
         <div class="row">
           <button class="btn" id="newPracticeBtn">Start practice (v0)</button>
           <button class="btn ghost" id="backHomeBtn">Back to Home</button>
@@ -96,84 +90,90 @@
         <h2>Stats</h2>
         <p class="small">We’ll show summaries once you’ve logged sessions. For now, there’s nothing to compute.</p>
         <div id="statsEmpty" class="small">No sessions yet.</div>
+        <div class="row" style="margin-top:8px">
+          <button class="btn ghost" id="backFromStatsBtn">Back to Home</button>
+        </div>
       </div>
     </section>
 
-    <!-- SETTINGS (import/export later) -->
+    <!-- SETTINGS -->
     <section id="settings" class="grid hide">
       <div class="card">
         <h2>Settings</h2>
-        <p class="small">We’ll add export/import and data reset here later.</p>
+        <div class="row">
+          <button class="btn" id="exportBtn">Export JSON</button>
+          <button class="btn warn" id="resetBtn">Reset All</button>
+          <button class="btn ghost" id="backFromSettingsBtn">Back to Home</button>
+        </div>
+        <p class="small">Export creates a backup file of your sessions. Reset wipes the local database.</p>
       </div>
     </section>
   </main>
 
-  <footer class="wrap small">All data is stored locally on your device. No defaults are preloaded.</footer>
+  <footer class="wrap small">Data is stored locally in IndexedDB (Dexie). No defaults are preloaded.</footer>
 
   <script>
-    // ---------- tiny helpers ----------
-    const $ = (q)=>document.querySelector(q);
+    // ---------- tiny DOM helpers ----------
+    const $  = (q)=>document.querySelector(q);
     const $$ = (q)=>Array.from(document.querySelectorAll(q));
     const el = (tag, attrs={}, html='')=>{ const x=document.createElement(tag); Object.entries(attrs).forEach(([k,v])=>x.setAttribute(k,v)); if(html!==undefined) x.innerHTML=html; return x; };
 
-    // ---------- local storage wrapper (no defaults loaded) ----------
-    const store = {
-      keySessions: 'gs_sessions_v1',
-      load(key, fallback){ try{ const raw = localStorage.getItem(key); return raw? JSON.parse(raw) : fallback; }catch{ return fallback; } },
-      save(key, val){ localStorage.setItem(key, JSON.stringify(val)); }
-    };
+    // ---------- Dexie setup (IndexedDB) ----------
+    const dx = new Dexie('golf_stats_v1');
+    dx.version(1).stores({
+      sessions: 'id, date' // primary key: id, index on date
+      // future: drills: 'id, name, cat', plans: 'id, name'
+    });
 
-    // ---------- app state ----------
-    let sessions = store.load(store.keySessions, []); // empty by design
+    // ---------- storage API (async) ----------
+    const db = {
+      async addSession(row){ await dx.table('sessions').add(row); return row; },
+      async listSessionsAsc(){ return await dx.table('sessions').orderBy('date').toArray(); },
+      async listSessionsDesc(){ return await dx.table('sessions').orderBy('date').reverse().toArray(); },
+      async count(){ return await dx.table('sessions').count(); },
+      async clear(){ await dx.table('sessions').clear(); },
+      async export(){ const all = await dx.table('sessions').toArray(); return { sessions: all }; },
+      async stats(){
+        const count = await dx.table('sessions').count();
+        if(!count) return { count:0, first:null, last:null, recent:[] };
+        const firstRow = await dx.table('sessions').orderBy('date').first();
+        const lastRow  = await dx.table('sessions').orderBy('date').last();
+        const recent   = await dx.table('sessions').orderBy('date').reverse().limit(3).toArray();
+        return { count, first:firstRow.date, last:lastRow.date, recent };
+      }
+    };
 
     // ---------- simple router ----------
     const routes = ['home','practice','stats','settings'];
     function go(route){
       if(!routes.includes(route)) route = 'home';
-      // tabs
-      $$(".tab").forEach(t=> t.classList.toggle('active', t.getAttribute('data-route')===route));
-      // sections
       routes.forEach(r=> document.getElementById(r).classList.toggle('hide', r!==route));
-      document.title = (route==='home' ? 'Golf Stats' : `Golf Stats – ${route[0].toUpperCase()+route.slice(1)}`);
-      // render for each route
+      document.title = (route==='home' ? 'Golf Stats (Dexie v0)' : `Golf Stats – ${route[0].toUpperCase()+route.slice(1)}`);
       if(route==='home') renderHome();
       if(route==='practice') renderPractice();
       if(route==='stats') renderStats();
+      if(route==='settings') renderSettings();
     }
     window.addEventListener('hashchange', ()=> go(location.hash.replace('#','')||'home'));
     go(location.hash.replace('#','')||'home');
 
     // ---------- HOME ----------
-    function renderHome(){
-      // KPIs
-      $('#k_total').textContent = sessions.length;
-      if(sessions.length){
-        const dates = sessions.map(s=> s.date).sort();
-        $('#k_first').textContent = dates[0];
-        $('#k_last').textContent = dates[dates.length-1];
-        // recent list (up to 3)
-        const recent = sessions.slice().sort((a,b)=> (a.date<b.date?1:-1)).slice(0,3);
-        const box = $('#recentList');
-        box.innerHTML = '';
-        recent.forEach(s=>{
-          const row = el('div',{}, `<span class="pill">${s.date}</span> – ${s.note||'Practice'}`);
-          box.appendChild(row);
-        });
-      } else {
-        $('#k_first').textContent = '–';
-        $('#k_last').textContent = '–';
-        $('#recentList').textContent = 'No sessions yet. Your last three practices will appear here.';
-      }
+    async function renderHome(){
+      const s = await db.stats();
+      $('#k_total').textContent = s.count;
+      $('#k_first').textContent = s.first || '–';
+      $('#k_last').textContent  = s.last  || '–';
+      const box = $('#recentList');
+      if(!s.count){ box.textContent = 'No sessions yet. Your last three practices will appear here.'; return; }
+      box.innerHTML = '';
+      s.recent.forEach(row=> box.appendChild(el('div',{}, `<span class="pill">${row.date}</span> – ${row.note||'Practice'}`)));
     }
 
     // ---------- PRACTICE (v0 placeholder) ----------
     function renderPractice(){
-      $('#newPracticeBtn').onclick = ()=>{
-        // Minimal stub: create an empty session with date only so the dashboard can update.
+      $('#newPracticeBtn').onclick = async ()=>{
         const today = new Date().toISOString().slice(0,10);
-        const s = { id: crypto.randomUUID(), date: today, note: '' };
-        sessions.unshift(s);
-        store.save(store.keySessions, sessions);
+        await db.addSession({ id: crypto.randomUUID(), date: today, note: '' });
         alert('Practice started (placeholder). We will build the full entry flow next.');
         location.hash = '#home';
       };
@@ -181,8 +181,32 @@
     }
 
     // ---------- STATS (v0 placeholder) ----------
-    function renderStats(){
-      $('#statsEmpty').textContent = sessions.length ? `${sessions.length} session(s) saved. Detailed stats coming next.` : 'No sessions yet.';
+    async function renderStats(){
+      const n = await db.count();
+      $('#statsEmpty').textContent = n ? `${n} session(s) saved. Detailed stats coming next.` : 'No sessions yet.';
+      const back = document.getElementById('backFromStatsBtn');
+      if (back) back.onclick = ()=> location.hash = '#home';
+    }
+
+    // ---------- SETTINGS ----------
+    function renderSettings(){
+      $('#exportBtn').onclick = async ()=>{
+        const payload = await db.export();
+        const blob = new Blob([JSON.stringify(payload,null,2)], { type:'application/json' });
+        const url = URL.createObjectURL(blob);
+        const a = el('a',{ href:url, download:`golf_stats_backup.json` });
+        document.body.appendChild(a); a.click(); a.remove();
+        setTimeout(()=> URL.revokeObjectURL(url), 5000);
+      };
+      $('#resetBtn').onclick = async ()=>{
+        if(!confirm('This will delete ALL local data. Continue?')) return;
+        await db.clear();
+        alert('Local database cleared.');
+        location.hash = '#home';
+        renderHome();
+      };
+      const back = document.getElementById('backFromSettingsBtn');
+      if (back) back.onclick = ()=> location.hash = '#home';
     }
   </script>
 </body>
