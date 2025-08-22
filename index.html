@@ -72,7 +72,7 @@
               <select id="planPicker"></select>
             </div>
             <div style="flex:0 0 auto;align-self:flex-end;display:flex;gap:8px">
-              <button class="btn" id="loadPlanBtn">Load</button>
+              <!-- Load button removed (auto-load on change) -->
               <button class="btn ghost" id="savePlanBtn">Save As…</button>
               <button class="btn warn" id="deletePlanBtn">Delete</button>
             </div>
@@ -233,6 +233,16 @@
     const planPicker = $('#planPicker'); planPicker.innerHTML = '';
     plans.forEach(p=> planPicker.appendChild(el('option',{value:p.id}, p.name)));
     planPicker.value = activePlanId;
+
+    // AUTO-LOAD ON CHANGE (no button required)
+    planPicker.onchange = ()=>{
+      activePlanId = planPicker.value;
+      localStorage.setItem(store.keyActivePlan, activePlanId);
+      // re-render plan + log so UI reflects the newly selected plan immediately
+      renderPlan();
+      renderLog();
+    };
+
     $('#planName').value = getPlan(activePlanId)?.name ?? '';
     $('#planFocus').value = getPlan(activePlanId)?.focus ?? '';
 
@@ -312,33 +322,6 @@
       const id = name.toLowerCase().replace(/[^a-z0-9]+/g,'_') + '_' + Math.random().toString(36).slice(2,6);
       drills.push({id,name,cat,type,defAttempts});
       store.save(store.keyDrills, drills);
-      renderPlan();
-    };
-
-    // plan buttons
-    $('#loadPlanBtn').onclick = ()=>{
-      activePlanId = planPicker.value;
-      localStorage.setItem(store.keyActivePlan, activePlanId);
-      $('#planName').value = getPlan(activePlanId).name;
-      $('#planFocus').value = getPlan(activePlanId).focus || '';
-      renderPlan();
-    };
-    $('#savePlanBtn').onclick = ()=>{
-      const name = prompt('Save this as a new plan name:', $('#planName').value || 'My Plan'); if(!name) return;
-      const id = 'plan_' + Math.random().toString(36).slice(2,8);
-      const cur = getPlan(activePlanId);
-      const copy = {id, name, focus: $('#planFocus').value, drills: [...cur.drills]};
-      plans.push(copy);
-      store.save(store.keyPlans, plans);
-      activePlanId = id; localStorage.setItem(store.keyActivePlan, id);
-      renderPlan();
-    };
-    $('#deletePlanBtn').onclick = ()=>{
-      if(plans.length<=1) return alert('Keep at least one plan.');
-      if(!confirm('Delete this plan?')) return;
-      plans = plans.filter(p=>p.id!==activePlanId);
-      store.save(store.keyPlans, plans);
-      activePlanId = plans[0].id; localStorage.setItem(store.keyActivePlan, activePlanId);
       renderPlan();
     };
 
