@@ -29,6 +29,15 @@
     .btn.warn{background:var(--bad);color:white}
     .hide{display:none}
     footer{color:#9db4ff}
+
+    /* NEW: compact icon button for Settings in header */
+    .icon-btn{
+      display:inline-flex;align-items:center;justify-content:center;
+      width:38px;height:38px;border-radius:10px;cursor:pointer;
+      background:transparent;border:1px solid #1f2a44;color:var(--ink);
+    }
+    .icon-btn:hover{ box-shadow:0 0 0 2px rgba(56,189,248,.2) inset; border-color:var(--accent); }
+    .icon-btn:focus-visible{ outline:2px solid var(--accent); outline-offset:2px; }
   </style>
   <!-- Dexie (IndexedDB wrapper) -->
   <script src="https://unpkg.com/dexie@latest/dist/dexie.min.js"></script>
@@ -42,6 +51,14 @@
         <div class="small">Dexie • Summary • Practice • Stats</div>
       </div>
     </div>
+
+    <!-- NEW: top-right Settings button -->
+    <button id="topSettingsBtn" class="icon-btn" aria-label="Open settings" title="Settings">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+        <path d="M12 8.5a3.5 3.5 0 1 0 0 7 3.5 3.5 0 0 0 0-7Zm8 3.5a8.5 8.5 0 0 0-.1-1l2.1-1.6-2-3.5-2.5 1a8.8 8.8 0 0 0-1.7-1l-.3-2.7H8.5l-.3 2.7a8.8 8.8 0 0 0-1.7 1l-2.5-1-2 3.5L4 11a8.8 8.8 0 0 0 0 2l-2.1 1.6 2 3.5 2.5-1a8.8 8.8 0 0 0 1.7 1l.3 2.7h4.9l.3-2.7a8.8 8.8 0 0 0 1.7-1l2.5 1 2-3.5L19.9 13a8.5 8.5 0 0 0 .1-1Z"
+              stroke="#9db4ff" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+    </button>
   </header>
 
   <main class="wrap">
@@ -208,6 +225,10 @@
       const back = document.getElementById('backFromSettingsBtn');
       if (back) back.onclick = ()=> location.hash = '#home';
     }
+
+    // NEW: bind header settings button
+    const topSettings = document.getElementById('topSettingsBtn');
+    if (topSettings) topSettings.onclick = () => { location.hash = '#settings'; };
   </script>
 </body>
 </html>
