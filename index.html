@@ -68,7 +68,7 @@
           <h2>Practice Plan</h2>
           <div class="row" style="flex:0 1 520px">
             <div>
-              <label>Saved Practices</label>
+              <label>Saved Practice Plans</label>
               <select id="practicePicker"></select>
             </div>
             <div style="flex:0 0 auto;align-self:flex-end;display:flex;gap:8px">
@@ -81,11 +81,11 @@
         <div class="section">
           <div class="row">
             <div>
-              <label>Practice Plan Name</label>
+              <label>Name</label>
               <input id="planName" placeholder="e.g., Short Game Focus" />
             </div>
             <div>
-              <label>Today's Goals</label>
+              <label>Practice Goals</label>
               <input id="planFocus" placeholder="Optional" />
             </div>
           </div>
@@ -190,14 +190,14 @@
 
   // Default Drill Library
   const defaultDrills = [
-    {id:'putt_gate', name:'Gate Drill', cat:'Putting', type:'ma', defAttempts:20},
-    {id:'putt_circle', name:'Circle Drill', cat:'Putting', type:'ma', defAttempts:10},
-    {id:'putt_lag', name:'Lag Putting Drill', cat:'Putting', type:'pm', defAttempts:15},
-    {id:'chip_towel', name:'Towel Drill', cat:'Chipping', type:'ma', defAttempts:30},
-    {id:'chip_updown', name:'Up & Downs', cat:'Chipping', type:'ma', defAttempts:9},
-    {id:'rng_gir', name:'Virtual 9', cat:'Range', type:'ma', defAttempts:9},
-    {id:'rng_iron', name:'Iron Targets', cat:'Range', type:'ma', defAttempts:10},
-    {id:'rng_drv', name:'Driver Targets', cat:'Range', type:'ma', defAttempts:10},
+    {id:'putt_gate', name:'Gate Drill', cat:'Putting', type:'%', defAttempts:20},
+    {id:'putt_circle', name:'Circle Drill', cat:'Putting', type:'%', defAttempts:10},
+    {id:'putt_lag', name:'Lag Putting Drill', cat:'Putting', type:'Points', defAttempts:15},
+    {id:'chip_towel', name:'Towel Drill', cat:'Chipping', type:'%', defAttempts:30},
+    {id:'chip_updown', name:'Up & Downs', cat:'Chipping', type:'%', defAttempts:9},
+    {id:'rng_gir', name:'Virtual 9', cat:'Range', type:'%', defAttempts:9},
+    {id:'rng_iron', name:'Iron Targets', cat:'Range', type:'%', defAttempts:10},
+    {id:'rng_drv', name:'Driver Targets', cat:'Range', type:'%', defAttempts:10},
     {id:'rng_note', name:'Range Notes', cat:'Range', type:'note'}
   ];
 
@@ -291,7 +291,7 @@
       const list = el('div',{class:'list'});
       cats[cat].forEach(d=>{
         const chip = el('div',{class:'chip'+(getPlan(activePlanId).drills.includes(d.id)?' sel':'')});
-        chip.textContent = d.name + (d.type!=='note' ? ` (${d.type==='ma'?'m/a':'pts'})` : ' (note)');
+        chip.textContent = d.name + (d.type!=='note' ? ` (${d.type==='%'?'m/a':'pts'})` : ' (note)');
         chip.onclick = ()=>{
           const plan = getPlan(activePlanId);
           const has = plan.drills.includes(d.id);
@@ -317,7 +317,7 @@
         ${['Putting','Chipping','Range'].map(c=>`<option ${d.cat===c?'selected':''}>${c}</option>`).join('')}
       </select>`));
       tr.appendChild(el('td',{}, `<select data-k="type" data-id="${d.id}">
-        ${['ma','pm','note'].map(t=>`<option ${d.type===t?'selected':''} value="${t}">${t}</option>`).join('')}
+        ${['%','Points','Note'].map(t=>`<option ${d.type===t?'selected':''} value="${t}">${t}</option>`).join('')}
       </select>`));
       tr.appendChild(el('td',{}, `<input data-k="defAttempts" data-id="${d.id}" type="number" min="0" value="${d.defAttempts??0}">`));
       tr.appendChild(el('td',{}, `<button class="btn ghost" data-del="${d.id}">Delete</button>`));
@@ -402,13 +402,13 @@
       const grid = el('div',{class:'row'});
       cats[cat].forEach(d=>{
         const group = el('div',{});
-        if(d.type==='ma'){
+        if(d.type==='%'){
           group.innerHTML = `<label>${d.name} — Made / Attempts</label>
           <div class="row">
             <input type="number" min="0" id="m_${d.id}" placeholder="made">
             <input type="number" min="1" id="t_${d.id}" placeholder="${d.defAttempts||''}">
           </div>`;
-        }else if(d.type==='pm'){
+        }else if(d.type==='Points'){
           group.innerHTML = `<label>${d.name} — Points / Max</label>
           <div class="row">
             <input type="number" min="0" id="m_${d.id}" placeholder="points">
@@ -432,7 +432,7 @@
       const measures = {};
       plan.drills.forEach(id=>{
         const d = getDrill(id);
-        if(d.type==='ma' || d.type==='pm'){
+        if(d.type==='%' || d.type==='Points'){
           const m = +($('#m_'+id)?.value||0), t = +($('#t_'+id)?.value||0);
           measures[id] = {type:d.type, m, t};
         }else{
