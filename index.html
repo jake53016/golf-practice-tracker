@@ -394,7 +394,7 @@
     $('#activePlanName').textContent = plan ? plan.name : '–';
     $('#date').valueAsDate = new Date();
 
-    const form = $('#logForm'); form.innerHTML = '';
+    const form = $('#trackForm'); form.innerHTML = '';
     const cats = byCat(plan.drills.map(getDrill).filter(Boolean));
     Object.keys(cats).forEach(cat=>{
       const card = el('div',{class:'card'});
