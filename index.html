@@ -201,13 +201,28 @@
     {id:'rng_note', name:'Range Notes', cat:'Range', type:'note'}
   ];
 
-  // State
+  // ---------- STATE ----------
   let drills = store.load(store.keyDrills, defaultDrills);
-  let plans = store.load(store.keyPlans, [
-    {id:'plan_std', name:'Standard Session', focus:'', drills:['put_gate','put_circle','put_lag','chip_towel','chip_updown','rng_gir','rng_iron','rng_drv']}
-  ]);
-  let activePlanId = localStorage.getItem(store.keyActivePlan) || plans[0].id;
+  let plans = store.load(store.keyPlans, []); // start empty; we'll ensure Default below
+  let activePlanId = localStorage.getItem(store.keyActivePlan) || 'default';
   let sessions = store.load(store.keySessions, []);
+
+  // Ensure non-deletable DEFAULT plan exists; on first run, include ALL current drills
+  function ensureDefaultPlan() {
+    const hasDefault = plans.some(p => p.id === 'default');
+    if (!hasDefault) {
+      // first-time (or missing) default: include every current drill
+      const allDrillIds = drills.map(d => d.id);
+      plans.unshift({ id: 'default', name: 'Default', focus: '', drills: allDrillIds });
+      store.save(store.keyPlans, plans);
+    }
+    // make sure activePlanId points to an existing plan; else force default
+    if (!plans.some(p => p.id === activePlanId)) {
+      activePlanId = 'default';
+      localStorage.setItem(store.keyActivePlan, activePlanId);
+    }
+  }
+  ensureDefaultPlan();
 
   // Tabs
   document.querySelectorAll('.tab').forEach(btn=>btn.addEventListener('click',()=>{
@@ -233,17 +248,29 @@
     plans.forEach(p=> practicePicker.appendChild(el('option',{value:p.id}, p.name)));
     practicePicker.value = activePlanId;
 
-    // AUTO-LOAD ON CHANGE (no button required)
+    // AUTO-LOAD ON CHANGE
     practicePicker.onchange = ()=>{
       activePlanId = practicePicker.value;
       localStorage.setItem(store.keyActivePlan, activePlanId);
-      // re-render plan + log so UI reflects the newly selected plan immediately
       renderPlan();
       renderLog();
     };
 
+    // Plan fields
     $('#planName').value = getPlan(activePlanId)?.name ?? '';
     $('#planFocus').value = getPlan(activePlanId)?.focus ?? '';
+
+    // Disable delete button for Default
+    const deleteBtn = $('#deletePlanBtn');
+    if (activePlanId === 'default') {
+      deleteBtn.disabled = true;
+      deleteBtn.title = 'The Default plan cannot be deleted';
+      deleteBtn.classList.add('ghost');
+    } else {
+      deleteBtn.disabled = false;
+      deleteBtn.title = '';
+      deleteBtn.classList.remove('ghost');
+    }
 
     // drill pickers (chips)
     const pickers = $('#pickers'); pickers.innerHTML='';
@@ -291,7 +318,7 @@
 
     // listeners for edit
     lib.querySelectorAll('input[data-id], select[data-id]').forEach(inp=>{
-      inp.addEventListener('change', (e)=>{
+      inp.addEventListener('change', ()=>{
         const id = inp.getAttribute('data-id');
         const k = inp.getAttribute('data-k');
         const d = getDrill(id);
@@ -304,7 +331,7 @@
         const id = btn.getAttribute('data-del');
         if(!confirm('Delete this drill from library?')) return;
         drills = drills.filter(d=>d.id!==id);
-        // remove from plans
+        // remove from all plans (including Default)
         plans.forEach(p=> p.drills = p.drills.filter(x=>x!==id));
         store.save(store.keyDrills, drills);
         store.save(store.keyPlans, plans);
@@ -324,7 +351,31 @@
       renderPlan();
     };
 
-    // keep name/focus synced
+    // save current plan name/focus
+    $('#savePlanBtn').onclick = ()=>{
+      const p = getPlan(activePlanId);
+      p.name = $('#planName').value || p.name;
+      p.focus = $('#planFocus').value || '';
+      store.save(store.keyPlans, plans);
+      alert('Plan saved.');
+      renderPlan();
+    };
+
+    // delete plan (block Default)
+    $('#deletePlanBtn').onclick = ()=>{
+      if (activePlanId === 'default') {
+        alert('The Default plan cannot be deleted.');
+        return;
+      }
+      if (!confirm('Delete this plan?')) return;
+      plans = plans.filter(p=>p.id!==activePlanId);
+      store.save(store.keyPlans, plans);
+      activePlanId = 'default';
+      localStorage.setItem(store.keyActivePlan, activePlanId);
+      renderPlan(); renderLog();
+    };
+
+    // keep name/focus synced on change (optional live-save)
     $('#planName').onchange = ()=>{ const p=getPlan(activePlanId); p.name=$('#planName').value; store.save(store.keyPlans, plans); };
     $('#planFocus').onchange = ()=>{ const p=getPlan(activePlanId); p.focus=$('#planFocus').value; store.save(store.keyPlans, plans); };
   }
@@ -399,7 +450,6 @@
 
   // ---------- STATS TAB ----------
   function renderStats(){
-    // Plan filter
     const sel = $('#statsPlanFilter'); sel.innerHTML = '<option value="">All plans</option>';
     plans.forEach(p=> sel.appendChild(el('option',{value:p.id}, p.name)));
     sel.value = '';
@@ -407,9 +457,8 @@
     const summary = $('#statsSummary'); const tbody = $('#tbl tbody');
     function computeAndRender(filterPlanId=''){
       summary.innerHTML=''; tbody.innerHTML='';
-      // Aggregate per drill across last 50 sessions (filtered)
       const recent = sessions.filter(s=> !filterPlanId || s.planId===filterPlanId).slice(0, 50);
-      const agg = {}; // id -> {name,cat,type, vals[]}
+      const agg = {};
       recent.forEach(s=>{
         Object.entries(s.measures||{}).forEach(([id,val])=>{
           const d = getDrill(id); if(!d) return;
@@ -417,7 +466,6 @@
           agg[id].vals.push(val);
         });
       });
-      // Build stat chips
       Object.entries(agg).forEach(([id,info])=>{
         if(info.type==='note') return;
         const pct = (arr)=>{
@@ -431,7 +479,6 @@
         summary.appendChild(card);
       });
 
-      // Sessions table
       recent.forEach(s=>{
         const tr = el('tr');
         const drillsHTML = Object.entries(s.measures).map(([id,val])=>{
@@ -462,9 +509,7 @@
 
   // Export / Import / Reset
   document.getElementById('exportBtn').onclick = ()=>{
-    const data = {
-      drills, plans, activePlanId, sessions
-    };
+    const data = { drills, plans, activePlanId, sessions };
     const blob = new Blob([JSON.stringify(data,null,2)], {type:'application/json'});
     const a = document.createElement('a');
     a.href = URL.createObjectURL(blob);
@@ -481,6 +526,8 @@
         if(Array.isArray(data.plans)) plans = data.plans;
         if(data.activePlanId) activePlanId = data.activePlanId;
         if(Array.isArray(data.sessions)) sessions = data.sessions;
+        // Always ensure Default exists after import
+        ensureDefaultPlan();
         store.save(store.keyDrills, drills);
         store.save(store.keyPlans, plans);
         localStorage.setItem(store.keyActivePlan, activePlanId);
@@ -498,8 +545,12 @@
     localStorage.removeItem(store.keyActivePlan);
     localStorage.removeItem(store.keySessions);
     drills = defaultDrills.slice();
-    plans = [{id:'plan_std', name:'Standard Session', focus:'', drills:['put_gate','put_circle','put_lag','chip_towel','chip_updown','rng_gir','rng_iron','rng_drv']}];
-    activePlanId = plans[0].id;
+    plans = []; // will be refilled by ensureDefaultPlan()
+    activePlanId = 'default';
+    ensureDefaultPlan();
+    store.save(store.keyDrills, drills);
+    store.save(store.keyPlans, plans);
+    localStorage.setItem(store.keyActivePlan, activePlanId);
     sessions = [];
     renderPlan(); renderLog(); renderStats();
   };
@@ -508,3 +559,4 @@
   renderPlan();
   </script>
 </body>
+</html>
