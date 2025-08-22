@@ -353,7 +353,7 @@
       const p = getPlan(activePlanId);
       const nameInput = $('#planName').value;
       if(!validName(nameInput)) {
-        alert('Plan name cannot be empty or "NULL".');
+        alert('Plan name cannot be empty.');
         $('#planName').value = p.name || (activePlanId==='default' ? 'Default' : '');
         return;
       }
