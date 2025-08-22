@@ -73,6 +73,7 @@
             </div>
             <div style="flex:0 0 auto;align-self:flex-end;display:flex;gap:8px">
               <!-- Load button removed (auto-load on change) -->
+              <button class="btn ghost" id="savePlanBtn">Save As…</button>
               <button class="btn ghost" id="savePlanBtn">Save</button>
               <button class="btn warn" id="deletePlanBtn">Delete</button>
             </div>
@@ -140,22 +141,18 @@
     <section id="stats" class="grid hide">
       <div class="grid cards">
         <div class="card">
-          <h2>Stats</h2>
-
-          <div class="section">
-            <label>Filter by Plan</label>
-            <select id="statsPlanFilter"></select>
+          <div class="flex-between">
+            <h2>Stats</h2>
+            <div style="display:flex;gap:8px;align-items:end">
+              <div>
+                <label>Filter by Plan</label>
+                <select id="statsPlanFilter"></select>
+              </div>
+              <button class="btn ghost" id="exportBtn">Export JSON</button>
+              <label class="btn ghost" for="importFile" style="cursor:pointer">Import<input id="importFile" type="file" accept="application/json" style="display:none"/></label>
+              <button class="btn warn" id="resetAll">Reset All</button>
+            </div>
           </div>
-
-          <div class="section" style="display:flex;gap:8px;flex-wrap:wrap">
-            <button class="btn ghost" id="exportBtn">Export JSON</button>
-            <label class="btn ghost" for="importFile" style="cursor:pointer">
-              Import
-              <input id="importFile" type="file" accept="application/json" style="display:none"/>
-            </label>
-            <button class="btn warn" id="resetAll">Reset All</button>
-          </div>
-
           <div id="statsSummary" class="row"></div>
         </div>
       </div>
@@ -176,7 +173,266 @@
         </table>
       </div>
     </section>
-    
+  </main>
+
+  <footer class="wrap small">All data is stored locally on your device (localStorage). You can export/import from the Stats tab.</footer>
+
+  <script>
+  const $ = (q)=>document.querySelector(q);
+  const el = (tag, attrs={}, html='')=>{ const x=document.createElement(tag); Object.entries(attrs).forEach(([k,v])=>x.setAttribute(k,v)); if(html) x.innerHTML=html; return x; };
+
+  const store = {
+    keySessions: 'fg_sessions_v2',
+    keyPlans: 'fg_plans_v2',
+    keyActivePlan: 'fg_active_plan_v2',
+    keyDrills: 'fg_drills_v2',
+    load(key, fallback){ try{ return JSON.parse(localStorage.getItem(key)) ?? fallback; }catch{ return fallback; } },
+    save(key, val){ localStorage.setItem(key, JSON.stringify(val)); }
+  };
+
+  // Default Drill Library
+  const defaultDrills = [
+    {id:'put_gate', name:'Gate', cat:'Putting', type:'ma', defAttempts:20},
+    {id:'put_circle', name:'Circle 3ft', cat:'Putting', type:'ma', defAttempts:10},
+    {id:'put_lag', name:'Lag Points', cat:'Putting', type:'pm', defAttempts:15},
+    {id:'chip_towel', name:'Towel', cat:'Chipping', type:'ma', defAttempts:30},
+    {id:'chip_updown', name:'Up & Down', cat:'Chipping', type:'ma', defAttempts:9},
+    {id:'rng_gir', name:'Virtual 9 GIR', cat:'Range', type:'ma', defAttempts:9},
+    {id:'rng_iron', name:'7i Narrow Target', cat:'Range', type:'ma', defAttempts:10},
+    {id:'rng_drv', name:'Driver Narrow Target', cat:'Range', type:'ma', defAttempts:10},
+    {id:'rng_note', name:'Range Notes', cat:'Range', type:'note'}
+  ];
+
+  // State
+  let drills = store.load(store.keyDrills, defaultDrills);
+  let plans = store.load(store.keyPlans, [
+    {id:'plan_std', name:'Standard Session', focus:'', drills:['put_gate','put_circle','put_lag','chip_towel','chip_updown','rng_gir','rng_iron','rng_drv']}
+  ]);
+  let activePlanId = localStorage.getItem(store.keyActivePlan) || plans[0].id;
+  let sessions = store.load(store.keySessions, []);
+
+  // Tabs
+  document.querySelectorAll('.tab').forEach(btn=>btn.addEventListener('click',()=>{
+    document.querySelectorAll('.tab').forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active');
+    const tab = btn.dataset.tab;
+    document.querySelectorAll('main section').forEach(s=>s.classList.add('hide'));
+    document.getElementById(tab).classList.remove('hide');
+    if(tab==='plan') renderPlan();
+    if(tab==='log') renderLog();
+    if(tab==='stats') renderStats();
+  }));
+
+  // Helpers
+  const byCat = (list)=> list.reduce((m,d)=>{ (m[d.cat]??=[]).push(d); return m; },{});
+  const getPlan = (id)=> plans.find(p=>p.id===id);
+  const getDrill = (id)=> drills.find(d=>d.id===id);
+
+  // ---------- PLAN TAB ----------
+  function renderPlan(){
+    // picker for plans
+    const planPicker = $('#planPicker'); planPicker.innerHTML = '';
+    plans.forEach(p=> planPicker.appendChild(el('option',{value:p.id}, p.name)));
+    planPicker.value = activePlanId;
+
+    // AUTO-LOAD ON CHANGE (no button required)
+    planPicker.onchange = ()=>{
+      activePlanId = planPicker.value;
+      localStorage.setItem(store.keyActivePlan, activePlanId);
+      // re-render plan + log so UI reflects the newly selected plan immediately
+      renderPlan();
+      renderLog();
+    };
+
+    $('#planName').value = getPlan(activePlanId)?.name ?? '';
+    $('#planFocus').value = getPlan(activePlanId)?.focus ?? '';
+
+    // drill pickers (chips)
+    const pickers = $('#pickers'); pickers.innerHTML='';
+    const cats = byCat(drills);
+    Object.keys(cats).forEach(cat=>{
+      const card = el('div',{class:'card'});
+      card.appendChild(el('h3',{}, cat));
+      const list = el('div',{class:'list'});
+      cats[cat].forEach(d=>{
+        const chip = el('div',{class:'chip'+(getPlan(activePlanId).drills.includes(d.id)?' sel':'')});
+        chip.textContent = d.name + (d.type!=='note' ? ` (${d.type==='ma'?'m/a':'pts'})` : ' (note)');
+        chip.onclick = ()=>{
+          const plan = getPlan(activePlanId);
+          const has = plan.drills.includes(d.id);
+          if(has){ plan.drills = plan.drills.filter(x=>x!==d.id); chip.classList.remove('sel'); }
+          else { plan.drills.push(d.id); chip.classList.add('sel'); }
+          store.save(store.keyPlans, plans);
+        };
+        list.appendChild(chip);
+      });
+      card.appendChild(list);
+      pickers.appendChild(card);
+    });
+
+    // library (editable rows)
+    const lib = $('#library'); lib.innerHTML = '';
+    const table = el('table');
+    table.innerHTML = `<thead><tr><th>Name</th><th>Category</th><th>Type</th><th>Default Attempts</th><th></th></tr></thead>`;
+    const tb = el('tbody');
+    drills.forEach(d=>{
+      const tr = el('tr');
+      tr.appendChild(el('td',{}, `<input data-k="name" data-id="${d.id}" value="${d.name}">`));
+      tr.appendChild(el('td',{}, `<select data-k="cat" data-id="${d.id}">
+        ${['Putting','Chipping','Range'].map(c=>`<option ${d.cat===c?'selected':''}>${c}</option>`).join('')}
+      </select>`));
+      tr.appendChild(el('td',{}, `<select data-k="type" data-id="${d.id}">
+        ${['ma','pm','note'].map(t=>`<option ${d.type===t?'selected':''} value="${t}">${t}</option>`).join('')}
+      </select>`));
+      tr.appendChild(el('td',{}, `<input data-k="defAttempts" data-id="${d.id}" type="number" min="0" value="${d.defAttempts??0}">`));
+      tr.appendChild(el('td',{}, `<button class="btn ghost" data-del="${d.id}">Delete</button>`));
+      tb.appendChild(tr);
+    });
+    table.appendChild(tb);
+    lib.appendChild(table);
+
+    // listeners for edit
+    lib.querySelectorAll('input[data-id], select[data-id]').forEach(inp=>{
+      inp.addEventListener('change', (e)=>{
+        const id = inp.getAttribute('data-id');
+        const k = inp.getAttribute('data-k');
+        const d = getDrill(id);
+        if(k==='defAttempts') d[k] = +inp.value || 0; else d[k] = inp.value;
+        store.save(store.keyDrills, drills);
+      });
+    });
+    lib.querySelectorAll('button[data-del]').forEach(btn=>{
+      btn.onclick = ()=>{
+        const id = btn.getAttribute('data-del');
+        if(!confirm('Delete this drill from library?')) return;
+        drills = drills.filter(d=>d.id!==id);
+        // remove from plans
+        plans.forEach(p=> p.drills = p.drills.filter(x=>x!==id));
+        store.save(store.keyDrills, drills);
+        store.save(store.keyPlans, plans);
+        renderPlan();
+      };
+    });
+
+    // add drill
+    $('#addDrillBtn').onclick = ()=>{
+      const name = prompt('Drill name (e.g., 5ft Circle)'); if(!name) return;
+      const cat = prompt('Category (Putting / Chipping / Range)','Putting') || 'Putting';
+      const type = prompt('Type (ma/pm/note)','ma') || 'ma';
+      const defAttempts = +(prompt('Default attempts (e.g., 20)','20') || 0);
+      const id = name.toLowerCase().replace(/[^a-z0-9]+/g,'_') + '_' + Math.random().toString(36).slice(2,6);
+      drills.push({id,name,cat,type,defAttempts});
+      store.save(store.keyDrills, drills);
+      renderPlan();
+    };
+
+    // keep name/focus synced
+    $('#planName').onchange = ()=>{ const p=getPlan(activePlanId); p.name=$('#planName').value; store.save(store.keyPlans, plans); };
+    $('#planFocus').onchange = ()=>{ const p=getPlan(activePlanId); p.focus=$('#planFocus').value; store.save(store.keyPlans, plans); };
+  }
+
+  // ---------- LOG TAB ----------
+  function renderLog(){
+    const plan = getPlan(activePlanId);
+    $('#activePlanName').textContent = plan ? plan.name : '–';
+    $('#date').valueAsDate = new Date();
+
+    const form = $('#logForm'); form.innerHTML = '';
+    const cats = byCat(plan.drills.map(getDrill).filter(Boolean));
+    Object.keys(cats).forEach(cat=>{
+      const card = el('div',{class:'card'});
+      card.appendChild(el('h3',{}, cat));
+      const grid = el('div',{class:'row'});
+      cats[cat].forEach(d=>{
+        const group = el('div',{});
+        if(d.type==='ma'){
+          group.innerHTML = `<label>${d.name} — Made / Attempts</label>
+          <div class="row">
+            <input type="number" min="0" id="m_${d.id}" placeholder="made">
+            <input type="number" min="1" id="t_${d.id}" placeholder="${d.defAttempts||''}">
+          </div>`;
+        }else if(d.type==='pm'){
+          group.innerHTML = `<label>${d.name} — Points / Max</label>
+          <div class="row">
+            <input type="number" min="0" id="m_${d.id}" placeholder="points">
+            <input type="number" min="1" id="t_${d.id}" placeholder="${d.defAttempts||''}">
+          </div>`;
+        }else{ // note
+          group.innerHTML = `<label>${d.name} — Note</label>
+          <input type="text" id="n_${d.id}" placeholder="notes for this drill">`;
+        }
+        grid.appendChild(group);
+      });
+      card.appendChild(grid);
+      form.appendChild(card);
+    });
+
+    $('#clearForm').onclick = ()=>{
+      document.querySelectorAll('#log input').forEach(i=>{ if(i.type==='date') return; i.value=''; });
+    };
+
+    $('#saveSession').onclick = ()=>{
+      const measures = {};
+      plan.drills.forEach(id=>{
+        const d = getDrill(id);
+        if(d.type==='ma' || d.type==='pm'){
+          const m = +($('#m_'+id)?.value||0), t = +($('#t_'+id)?.value||0);
+          measures[id] = {type:d.type, m, t};
+        }else{
+          const n = ($('#n_'+id)?.value||'').trim();
+          if(n) measures[id] = {type:'note', n};
+        }
+      });
+      const s = {
+        id: crypto.randomUUID(),
+        date: $('#date').value || new Date().toISOString().slice(0,10),
+        planId: activePlanId,
+        planName: plan.name,
+        focus: plan.focus || '',
+        measures,
+        notes: $('#notes').value||''
+      };
+      sessions.unshift(s);
+      store.save(store.keySessions, sessions);
+      alert('Session saved.');
+      renderStats();
+    };
+  }
+
+  // ---------- STATS TAB ----------
+  function renderStats(){
+    // Plan filter
+    const sel = $('#statsPlanFilter'); sel.innerHTML = '<option value="">All plans</option>';
+    plans.forEach(p=> sel.appendChild(el('option',{value:p.id}, p.name)));
+    sel.value = '';
+
+    const summary = $('#statsSummary'); const tbody = $('#tbl tbody');
+    function computeAndRender(filterPlanId=''){
+      summary.innerHTML=''; tbody.innerHTML='';
+      // Aggregate per drill across last 50 sessions (filtered)
+      const recent = sessions.filter(s=> !filterPlanId || s.planId===filterPlanId).slice(0, 50);
+      const agg = {}; // id -> {name,cat,type, vals[]}
+      recent.forEach(s=>{
+        Object.entries(s.measures||{}).forEach(([id,val])=>{
+          const d = getDrill(id); if(!d) return;
+          if(!agg[id]) agg[id] = {name:d.name, cat:d.cat, type:val.type, vals:[]};
+          agg[id].vals.push(val);
+        });
+      });
+      // Build stat chips
+      Object.entries(agg).forEach(([id,info])=>{
+        if(info.type==='note') return;
+        const pct = (arr)=>{
+          const nums = arr.filter(x=>x.t>0).map(x=> (x.m/x.t*100));
+          if(!nums.length) return null;
+          const avg = nums.reduce((a,b)=>a+b,0)/nums.length;
+          return avg.toFixed(1)+'%';
+        };
+        const card = el('div',{class:'chip'});
+        card.innerHTML = `<b>${info.name}</b> <span class="small">(${info.cat})</span><br/>Avg: ${pct(info.vals)??'–'}`;
+        summary.appendChild(card);
+      });
+
       // Sessions table
       recent.forEach(s=>{
         const tr = el('tr');
@@ -254,4 +510,3 @@
   renderPlan();
   </script>
 </body>
-</html>
