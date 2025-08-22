@@ -43,7 +43,6 @@
     .chip.sel{border-color:var(--accent);box-shadow:0 0 0 2px rgba(56,189,248,.2) inset}
     .hide{display:none}
   </style>
-  
 </head>
 <body>
   <header>
@@ -208,16 +207,25 @@
   let activePlanId = localStorage.getItem(store.keyActivePlan) || 'default';
   let sessions = store.load(store.keySessions, []);
 
+  // ---- Validation helpers ----
+  const validName = (name)=> {
+    const t = (name ?? '').trim();
+    return t.length > 0 && t.toLowerCase() !== 'null';
+  };
+  const enforceDefaultName = ()=> {
+    const p = plans.find(x=>x.id==='default');
+    if (p && !validName(p.name)) { p.name = 'Default'; }
+  };
+
   // Ensure non-deletable DEFAULT plan exists; on first run, include ALL current drills
   function ensureDefaultPlan() {
     const hasDefault = plans.some(p => p.id === 'default');
     if (!hasDefault) {
-      // first-time (or missing) default: include every current drill
       const allDrillIds = drills.map(d => d.id);
       plans.unshift({ id: 'default', name: 'Default', focus: '', drills: allDrillIds });
       store.save(store.keyPlans, plans);
     }
-    // make sure activePlanId points to an existing plan; else force default
+    enforceDefaultName();
     if (!plans.some(p => p.id === activePlanId)) {
       activePlanId = 'default';
       localStorage.setItem(store.keyActivePlan, activePlanId);
@@ -258,8 +266,9 @@
     };
 
     // Plan fields
-    $('#planName').value = getPlan(activePlanId)?.name ?? '';
-    $('#planFocus').value = getPlan(activePlanId)?.focus ?? '';
+    const plan = getPlan(activePlanId);
+    $('#planName').value = plan?.name ?? '';
+    $('#planFocus').value = plan?.focus ?? '';
 
     // Disable delete button for Default
     const deleteBtn = $('#deletePlanBtn');
@@ -332,7 +341,6 @@
         const id = btn.getAttribute('data-del');
         if(!confirm('Delete this drill from library?')) return;
         drills = drills.filter(d=>d.id!==id);
-        // remove from all plans (including Default)
         plans.forEach(p=> p.drills = p.drills.filter(x=>x!==id));
         store.save(store.keyDrills, drills);
         store.save(store.keyPlans, plans);
@@ -340,29 +348,26 @@
       };
     });
 
-    // add drill
-    $('#addDrillBtn').onclick = ()=>{
-      const name = prompt('Drill name (e.g., 5ft Circle)'); if(!name) return;
-      const cat = prompt('Category (Putting / Chipping / Range)','Putting') || 'Putting';
-      const type = prompt('Type (ma/pm/note)','ma') || 'ma';
-      const defAttempts = +(prompt('Default attempts (e.g., 20)','20') || 0);
-      const id = name.toLowerCase().replace(/[^a-z0-9]+/g,'_') + '_' + Math.random().toString(36).slice(2,6);
-      drills.push({id,name,cat,type,defAttempts});
-      store.save(store.keyDrills, drills);
-      renderPlan();
-    };
-
-    // save current plan name/focus
+    // Save plan (validate name)
     $('#savePlanBtn').onclick = ()=>{
       const p = getPlan(activePlanId);
-      p.name = $('#planName').value || p.name;
+      const nameInput = $('#planName').value;
+      if(!validName(nameInput)) {
+        alert('Plan name cannot be empty or "NULL".');
+        $('#planName').value = p.name || (activePlanId==='default' ? 'Default' : '');
+        return;
+      }
+      p.name = nameInput.trim();
+      if(activePlanId==='default' && p.name.toLowerCase()==='null') p.name='Default';
       p.focus = $('#planFocus').value || '';
       store.save(store.keyPlans, plans);
       alert('Plan saved.');
+      enforceDefaultName();
+      store.save(store.keyPlans, plans);
       renderPlan();
     };
 
-    // delete plan (block Default)
+    // Delete plan (block Default)
     $('#deletePlanBtn').onclick = ()=>{
       if (activePlanId === 'default') {
         alert('The Default plan cannot be deleted.');
@@ -376,8 +381,20 @@
       renderPlan(); renderLog();
     };
 
-    // keep name/focus synced on change (optional live-save)
-    $('#planName').onchange = ()=>{ const p=getPlan(activePlanId); p.name=$('#planName').value; store.save(store.keyPlans, plans); };
+    // Live validation when typing (prevents setting empty on change)
+    $('#planName').onchange = ()=>{
+      const p=getPlan(activePlanId);
+      const v = $('#planName').value;
+      if(!validName(v)) {
+        alert('Plan name cannot be empty or "NULL".');
+        $('#planName').value = p.name || (activePlanId==='default' ? 'Default' : '');
+        return;
+      }
+      p.name = v.trim();
+      if(activePlanId==='default' && p.name.toLowerCase()==='null') p.name='Default';
+      store.save(store.keyPlans, plans);
+      renderPlan(); // refresh picker label
+    };
     $('#planFocus').onchange = ()=>{ const p=getPlan(activePlanId); p.focus=$('#planFocus').value; store.save(store.keyPlans, plans); };
   }
 
@@ -407,7 +424,7 @@
             <input type="number" min="0" id="m_${d.id}" placeholder="points">
             <input type="number" min="1" id="t_${d.id}" placeholder="${d.defAttempts||''}">
           </div>`;
-        }else{ // note
+        }else{
           group.innerHTML = `<label>${d.name} — Note</label>
           <input type="text" id="n_${d.id}" placeholder="notes for this drill">`;
         }
@@ -527,8 +544,11 @@
         if(Array.isArray(data.plans)) plans = data.plans;
         if(data.activePlanId) activePlanId = data.activePlanId;
         if(Array.isArray(data.sessions)) sessions = data.sessions;
-        // Always ensure Default exists after import
+
+        // Enforce valid names and default presence after import
+        (plans||[]).forEach(p=>{ if(!validName(p.name)) p.name = (p.id==='default' ? 'Default' : 'My Plan'); });
         ensureDefaultPlan();
+
         store.save(store.keyDrills, drills);
         store.save(store.keyPlans, plans);
         localStorage.setItem(store.keyActivePlan, activePlanId);
