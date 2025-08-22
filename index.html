@@ -348,7 +348,7 @@
       };
     });
 
-    // Save plan (validate name)
+    // Save plan (validate name). NOTE: plan name changes are ONLY committed here.
     $('#savePlanBtn').onclick = ()=>{
       const p = getPlan(activePlanId);
       const nameInput = $('#planName').value;
@@ -381,20 +381,10 @@
       renderPlan(); renderLog();
     };
 
-    // Live validation when typing (prevents setting empty on change)
-    $('#planName').onchange = ()=>{
-      const p=getPlan(activePlanId);
-      const v = $('#planName').value;
-      if(!validName(v)) {
-        alert('Plan name cannot be empty or "NULL".');
-        $('#planName').value = p.name || (activePlanId==='default' ? 'Default' : '');
-        return;
-      }
-      p.name = v.trim();
-      if(activePlanId==='default' && p.name.toLowerCase()==='null') p.name='Default';
-      store.save(store.keyPlans, plans);
-      renderPlan(); // refresh picker label
-    };
+    // IMPORTANT CHANGE:
+    // Removed the previous auto-save handler for #planName (onchange).
+    // Now changing the name does nothing until the user presses Save.
+    // Keep focus field live-save if you want:
     $('#planFocus').onchange = ()=>{ const p=getPlan(activePlanId); p.focus=$('#planFocus').value; store.save(store.keyPlans, plans); };
   }
 
