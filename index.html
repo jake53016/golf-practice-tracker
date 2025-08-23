@@ -49,12 +49,12 @@
       <svg width="28" height="28" viewBox="0 0 24 24" fill="none"><path d="M20 21H4m4.5-5.5L20 3l-5.5 11.5L9 15.5Z" stroke="#38bdf8" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><circle cx="6" cy="18" r="2" stroke="#38bdf8"/></svg>
       <div>
         <h1>Golf Practice Tracker</h1>
-        <div class="small">Fairways & Greens • Offline-first • Saved on your device</div>
+        <div class="small">Offline-first • Saved on your device</div>
       </div>
     </div>
     <nav>
       <button class="tab active" data-tab="plan">Plan</button>
-      <button class="tab" data-tab="log">Log Session</button>
+      <button class="tab" data-tab="log">Log Practice</button>
       <button class="tab" data-tab="history">History & Stats</button>
     </nav>
   </header>
@@ -76,15 +76,11 @@
     <!-- LOG TAB -->
     <section id="log" class="grid hide">
       <div class="card">
-        <h2>Session Details</h2>
+        <h2>Practice Log</h2>
         <div class="row">
           <div>
             <label>Date</label>
             <input id="date" type="date" />
-          </div>
-          <div>
-            <label>Duration (min)</label>
-            <input id="minutes" type="number" min="10" step="5" placeholder="90" />
           </div>
         </div>
       </div>
@@ -94,28 +90,42 @@
           <h3>Putting</h3>
           <div class="row">
             <div>
-              <label>Gate Drill (0–20)</label>
-              <input id="put_gate" type="number" min="0" max="20" />
+              <label>Gate Drill — Made</label>
+              <input id="put_gate_m" type="number" min="0" />
             </div>
             <div>
-              <label>Circle 3ft (0–10)</label>
-              <input id="put_circle" type="number" min="0" max="10" />
+              <label>Gate Drill — Attempts</label>
+              <input id="put_gate_t" type="number" min="1" placeholder="20" />
             </div>
           </div>
           <div class="row" style="margin-top:8px">
             <div>
-              <label>Lag Points (&le;3ft) (0–15)</label>
-              <input id="put_lag" type="number" min="0" max="15" />
+              <label>Circle 3ft — Made</label>
+              <input id="put_circle_m" type="number" min="0" />
             </div>
             <div>
-              <label>Notes</label>
-              <input id="put_notes" type="text" placeholder="tempo, start line, etc." />
+              <label>Circle 3ft — Attempts</label>
+              <input id="put_circle_t" type="number" min="1" placeholder="10" />
             </div>
+          </div>
+          <div class="row" style="margin-top:8px">
+            <div>
+              <label>Lag Points — Points</label>
+              <input id="put_lag_m" type="number" min="0" />
+            </div>
+            <div>
+              <label>Lag Points — Max Points</label>
+              <input id="put_lag_t" type="number" min="1" placeholder="15" />
+            </div>
+          </div>
+          <div style="margin-top:8px">
+            <label>Notes</label>
+            <input id="put_notes" type="text" placeholder="tempo, start line, etc." />
           </div>
         </div>
 
         <div class="card">
-          <h3>Chipping / Pitching</h3>
+          <h3>Chipping</h3>
           <div class="row">
             <div>
               <label>Landing Towel Hits (of 30)</label>
@@ -133,7 +143,7 @@
         </div>
 
         <div class="card">
-          <h3>Range / TrackMan</h3>
+          <h3>Range</h3>
           <div class="row">
             <div>
               <label>Wedge 1 (yd) & Avg Carry</label>
@@ -187,9 +197,9 @@
         <div class="card">
           <h2>Averages (Last 10)</h2>
           <div class="grid" style="grid-template-columns:repeat(2,minmax(0,1fr));gap:12px">
-            <div class="stat"><span class="small">Gate Drill</span><b id="avg_gate">–</b><span class="small">/20</span></div>
-            <div class="stat"><span class="small">Circle 3ft</span><b id="avg_circle">–</b><span class="small">/10</span></div>
-            <div class="stat"><span class="small">Lag Points</span><b id="avg_lag">–</b><span class="small">/15</span></div>
+            <div class="stat"><span class="small">Gate Drill</span><b id="avg_gate">–</b><span class="small">%</span></div>
+            <div class="stat"><span class="small">Circle 3ft</span><b id="avg_circle">–</b><span class="small">%</span></div>
+            <div class="stat"><span class="small">Lag Points</span><b id="avg_lag">–</b><span class="small">%</span></div>
             <div class="stat"><span class="small">Towel Hits</span><b id="avg_towel">–</b><span class="small">/30</span></div>
             <div class="stat"><span class="small">Up & Downs</span><b id="avg_updown">–</b><span class="small">/9</span></div>
             <div class="stat"><span class="small">Virtual 9 GIR</span><b id="avg_gir">–</b><span class="small">/9</span></div>
@@ -215,7 +225,7 @@
           <thead>
             <tr>
               <th>Date</th>
-              <th>Put: Gate/Circle/Lag</th>
+              <th>Putting (Gate / Circle / Lag)</th>
               <th>Chip: Towel/Up&Down</th>
               <th>Range: GIR 7i/Drv</th>
               <th>Notes</th>
@@ -252,7 +262,20 @@
     }));
 
     // Plan template
-    const template = `Putting — 30min\n• Gate Drill: 20 putts within 6ft (score /20)\n• Circle Drill: 10 balls at 3ft (make all /10)\n• Lag Putting: 5 balls @ 20/30/40ft — 1pt inside 3ft (/15)\n\nChipping — 30min\n• Technical Reps: pick 2 shots (high/low), 10 balls each\n• Landing Spot: 30 balls; towel 3–5ft on green (score hits /30)\n• Pressure: 9 different chips → putt out (Up&Down % /9)\n\nRange — 30min\n• Wedge Work: 3 stock distances; 5 balls each (record avg carry)\n• Start Lines: 10 irons, 10 drivers (narrow target hits)\n• Virtual 9: random targets; full pre-shot routine (GIR /9)`;
+    const template = `Putting — 30min
+• Gate Drill: 20 putts within 6ft (score /20)
+• Circle Drill: 10 balls at 3ft (make all /10)
+• Lag Putting: 5 balls @ 20/30/40ft — 1pt inside 3ft (/15)
+
+Chipping — 30min
+• Technical Reps: pick 2 shots (high/low), 10 balls each
+• Landing Spot: 30 balls; towel 3–5ft on green (score hits /30)
+• Pressure: 9 different chips → putt out (Up&Down % /9)
+
+Range — 30min
+• Wedge Work: 3 stock distances; 5 balls each (record avg carry)
+• Start Lines: 10 irons, 10 drivers (narrow target hits)
+• Virtual 9: random targets; full pre-shot routine (GIR /9)`;
 
     const planText = $('#planText');
     function loadPlanUI(){ planText.value = store.loadPlan() || template; }
@@ -262,7 +285,7 @@
     $('#resetPlan').onclick = ()=>{ if(confirm('Reset plan text to template?')) { planText.value = template; store.savePlan(planText.value); }};
     $('#copyPlan').onclick = async ()=>{ try{ await navigator.clipboard.writeText(planText.value); alert('Plan copied to clipboard.'); }catch(e){ alert('Could not copy.'); }};
 
-    // Form helpers
+    // Date
     const today = new Date();
     $('#date').valueAsDate = today;
 
@@ -270,15 +293,15 @@
       document.querySelectorAll('#log input, #log textarea').forEach(el=>{ if(el.type==='date') return; el.value=''; });
     };
 
+    // Save
     $('#save').onclick = ()=>{
       const s = {
         id: crypto.randomUUID(),
         date: $('#date').value || new Date().toISOString().slice(0,10),
-        minutes: +($('#minutes').value||0),
         put: {
-          gate:+($('#put_gate').value||0),
-          circle:+($('#put_circle').value||0),
-          lag:+($('#put_lag').value||0),
+          gate:{m:+($('#put_gate_m').value||0), t:+($('#put_gate_t').value||0)},
+          circle:{m:+($('#put_circle_m').value||0), t:+($('#put_circle_t').value||0)},
+          lag:{m:+($('#put_lag_m').value||0), t:+($('#put_lag_t').value||0)},
           notes: $('#put_notes').value||''
         },
         chip: {
@@ -305,82 +328,6 @@
       store.save(list);
       alert('Session saved.');
       render();
-    };
-
-    // History + stats
-    function avg(arr, path, take=10){
-      const slice = arr.slice(0,take);
-      const nums = slice.map(x=> path(x)).filter(n=> typeof n==='number' && !isNaN(n));
-      if(!nums.length) return null; return (nums.reduce((a,b)=>a+b,0)/nums.length).toFixed(1);
-    }
-
-    function render(){
-      const list = store.load();
-      $('#avg_gate').textContent = avg(list, s=>s.put.gate)??'–';
-      $('#avg_circle').textContent = avg(list, s=>s.put.circle)??'–';
-      $('#avg_lag').textContent = avg(list, s=>s.put.lag)??'–';
-      $('#avg_towel').textContent = avg(list, s=>s.chip.towel)??'–';
-      $('#avg_updown').textContent = avg(list, s=>s.chip.updown)??'–';
-      $('#avg_gir').textContent = avg(list, s=>s.rng.gir)??'–';
-      $('#avg_iron').textContent = avg(list, s=>s.rng.iron)??'–';
-      $('#avg_drv').textContent = avg(list, s=>s.rng.drv)??'–';
-
-      const tbody = document.querySelector('#tbl tbody');
-      tbody.innerHTML = '';
-      list.forEach(s=>{
-        const tr = document.createElement('tr');
-        const wedgeTxt = s.rng.wedges.filter(w=>w.y>0&&w.c>0).map(w=>`${w.y}:${w.c}`).join(' | ');
-        tr.innerHTML = `
-          <td><span class="pill">${s.date}</span></td>
-          <td>${s.put.gate}/${20} • ${s.put.circle}/${10} • ${s.put.lag}/${15}</td>
-          <td>${s.chip.towel}/${30} • ${s.chip.updown}/${9}</td>
-          <td>${s.rng.gir}/${9} • 7i ${s.rng.iron}/${10} • Dr ${s.rng.drv}/${10}</td>
-          <td class="small">${(s.notes||'').slice(0,60)}</td>
-          <td><button class="btn ghost" data-del="${s.id}">Delete</button></td>`;
-        tbody.appendChild(tr);
-      });
-
-      // delete
-      tbody.querySelectorAll('button[data-del]').forEach(b=>b.onclick=()=>{
-        const id = b.dataset.del;
-        const list = store.load().filter(x=>x.id!==id);
-        store.save(list); render();
-      });
-    }
-
-    render();
-
-    // Export / Import / Reset
-    $('#exportBtn').onclick = ()=>{
-      const data = {plan: store.loadPlan()||template, sessions: store.load()};
-      const blob = new Blob([JSON.stringify(data,null,2)], {type:'application/json'});
-      const a = document.createElement('a');
-      a.href = URL.createObjectURL(blob);
-      a.download = 'golf_practice_backup.json';
-      a.click();
-    };
-
-    $('#importFile').addEventListener('change', (e)=>{
-      const file = e.target.files[0]; if(!file) return;
-      const reader = new FileReader();
-      reader.onload = ()=>{
-        try{
-          const data = JSON.parse(reader.result);
-          if(data.plan) store.savePlan(data.plan);
-          if(Array.isArray(data.sessions)) store.save(data.sessions);
-          loadPlanUI(); render();
-          alert('Import complete.');
-        }catch(err){ alert('Import failed. Invalid file.'); }
-      };
-      reader.readAsText(file);
-    });
-
-    $('#resetAll').onclick = ()=>{
-      if(confirm('This will delete ALL saved sessions and plan text on this device. Proceed?')){
-        localStorage.removeItem(store.key);
-        localStorage.removeItem(store.planKey);
-        loadPlanUI(); render();
-      }
     };
   </script>
 </body>
