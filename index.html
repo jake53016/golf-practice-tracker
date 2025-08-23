@@ -29,20 +29,22 @@
     .btn.warn{background:var(--bad);color:white}
     .hide{display:none}
     footer{color:#9db4ff}
-
-    /* NEW: compact icon button for Settings in header */
+    /*icon button for Settings in header */
     .icon-btn{
       display:inline-flex;align-items:center;justify-content:center;
       width:38px;height:38px;border-radius:10px;cursor:pointer;
       background:transparent;border:1px solid #1f2a44;color:var(--ink);
     }
     .icon-btn:hover{ box-shadow:0 0 0 2px rgba(56,189,248,.2) inset; border-color:var(--accent); }
-    .icon-btn:focus-visible{ outline:2px solid var(--accent); outline-offset:2px; }
-  </style>
+    .icon-btn:focus-visible{ outline:2px solid var(--accent); outline-offset:2px; }    
+  </style>  
+  
   <!-- Dexie (IndexedDB wrapper) -->
-  <script src="https://unpkg.com/dexie@latest/dist/dexie.min.js"></script>
+  <script src="https://unpkg.com/dexie@latest/dist/dexie.min.js"></script> 
+
 </head>
-<body>
+
+<body>  
   <header>
     <div class="title" aria-label="App title">
       <svg width="28" height="28" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M20 21H4m4.5-5.5L20 3l-5.5 11.5L9 15.5Z" stroke="#38bdf8" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><circle cx="6" cy="18" r="2" stroke="#38bdf8"/></svg>
