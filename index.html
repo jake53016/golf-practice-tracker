@@ -1,529 +1,540 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Golf Practice Tracker – Dynamic Plans</title>
-  <meta name="theme-color" content="#0ea5e9" />
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Golf Practice — MVP</title>
+  <!-- Dexie (IndexedDB) -->
+  <script src="https://unpkg.com/dexie@latest/dist/dexie.min.js"></script>
   <style>
-    :root{--bg:#0b1220;--card:#101829;--ink:#e5ecff;--muted:#9db4ff;--accent:#38bdf8;--ok:#22c55e;--bad:#ef4444;--warn:#f59e0b}
+    :root{
+      --bg:#0e1116; --card:#141922; --muted:#8aa0b6; --text:#e8eef6; --accent:#60a5fa; --accent-2:#22c55e; --danger:#ef4444;
+      --radius:16px;
+    }
     *{box-sizing:border-box}
-    html,body{height:100%}
-    body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,"Helvetica Neue",Arial; background:linear-gradient(180deg,#0b1220,#0f172a); color:var(--ink)}
-    a{color:var(--accent)}
-    .wrap{max-width:1100px;margin:0 auto;padding:16px}
-    header{display:flex;gap:12px;align-items:center;justify-content:space-between;position:sticky;top:0;background:rgba(11,18,32,.85);backdrop-filter:blur(6px);padding:10px 16px;border-bottom:1px solid #1f2a44;z-index:5}
-    .title{display:flex;gap:10px;align-items:center}
-    nav{display:flex;gap:8px}
-    .tab{border:1px solid #1f2a44;background:var(--card);color:var(--ink);padding:8px 12px;border-radius:12px;cursor:pointer}
-    .tab.active{border-color:var(--accent);box-shadow:0 0 0 2px rgba(56,189,248,.25) inset}
-    .grid{display:grid;gap:12px}
-    .cards{grid-template-columns:repeat(auto-fit,minmax(260px,1fr))}
-    .card{background:var(--card);border:1px solid #1f2a44;border-radius:16px;padding:14px}
-    h1,h2,h3{margin:0 0 8px}
-    h1{font-size:22px}
-    h2{font-size:18px;color:var(--muted)}
-    h3{font-size:16px;color:var(--muted)}
-    label{font-size:13px;color:#c7d2fe}
-    input,textarea,select{width:100%;padding:10px 12px;border-radius:12px;border:1px solid #2a3558;background:#0c1427;color:var(--ink);outline:none}
-    input[type=number]{appearance:textfield}
-    .row{display:flex;gap:10px;flex-wrap:wrap}
-    .row>div{flex:1 1 220px}
-    .btn{display:inline-flex;gap:8px;align-items:center;justify-content:center;background:var(--accent);border:0;color:#052338;padding:10px 14px;border-radius:12px;font-weight:600;cursor:pointer}
-    .btn.ghost{background:transparent;border:1px solid #1f2a44;color:var(--ink)}
-    .btn.warn{background:var(--bad);color:white}
-    .small{font-size:12px;color:#9db4ff}
-    table{width:100%;border-collapse:collapse}
-    th,td{border-bottom:1px solid #1f2a44;padding:8px 6px;text-align:left;font-size:13px;vertical-align:top}
-    .pill{display:inline-block;padding:2px 8px;border-radius:999px;border:1px solid #223055;color:#c7d2fe;font-size:12px}
-    .section{border-top:1px dashed #223055;padding-top:8px;margin-top:8px}
-    .flex-between{display:flex;justify-content:space-between;align-items:center;gap:8px}
-    .list{display:flex;flex-wrap:wrap;gap:8px}
-    .chip{padding:6px 10px;border:1px solid #243257;border-radius:999px}
-    .chip.sel{border-color:var(--accent);box-shadow:0 0 0 2px rgba(56,189,248,.2) inset}
-    .hide{display:none}
+    html,body{margin:0;height:100%;background:var(--bg);color:var(--text);font:16px/1.4 system-ui,Segoe UI,Roboto,Arial}
+    a{color:inherit;text-decoration:none}
+    button{cursor:pointer}
+    .container{max-width:980px;margin:0 auto;padding:20px}
+    .grid{display:grid;gap:16px}
+    .grid-cols-2{grid-template-columns:1fr 1fr}
+    @media(max-width:720px){.grid-cols-2{grid-template-columns:1fr}}
+    .card{background:var(--card);border-radius:var(--radius);padding:16px;box-shadow:0 6px 24px rgba(0,0,0,.25)}
+    .row{display:flex;gap:10px;align-items:center}
+    .row.wrap{flex-wrap:wrap}
+    .grow{flex:1}
+    .muted{color:var(--muted)}
+    .pill{display:inline-block;background:rgba(255,255,255,.06);padding:4px 10px;border-radius:999px;font-size:12px;margin-right:8px}
+    .btn{background:#1f2937;color:#fff;border:1px solid rgba(255,255,255,.1);padding:10px 14px;border-radius:12px}
+    .btn.primary{background:var(--accent);border-color:transparent}
+    .btn.success{background:var(--accent-2)}
+    .btn.danger{background:var(--danger)}
+    .btn.ghost{background:transparent;border-color:rgba(255,255,255,.15)}
+    .btn.icon{display:inline-flex;align-items:center;gap:8px}
+    .toolbar{display:flex;gap:10px;align-items:center;justify-content:space-between;margin-bottom:12px}
+    input,select,textarea{width:100%;padding:10px 12px;border-radius:12px;border:1px solid rgba(255,255,255,.15);background:#111521;color:var(--text)}
+    label{display:block;font-weight:600;margin:6px 0 6px}
+    .list{display:grid;gap:10px}
+    .item{display:flex;gap:10px;align-items:center;justify-content:space-between;padding:12px;border-radius:12px;background:#0f1420;border:1px solid rgba(255,255,255,.08)}
+    .item .meta{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+    .kbd{font-family:ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;background:rgba(255,255,255,.06);padding:2px 6px;border-radius:8px;font-size:12px}
+    .tag{font-size:12px;border:1px dashed rgba(255,255,255,.25);padding:2px 8px;border-radius:999px}
+    .hidden{display:none}
+    .danger-zone{border:1px dashed rgba(239,68,68,.5);padding:12px;border-radius:12px}
+    .hr{height:1px;background:rgba(255,255,255,.1);margin:14px 0}
   </style>
 </head>
 <body>
-  <header>
-    <div class="title">
-      <svg width="28" height="28" viewBox="0 0 24 24" fill="none"><path d="M20 21H4m4.5-5.5L20 3l-5.5 11.5L9 15.5Z" stroke="#38bdf8" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><circle cx="6" cy="18" r="2" stroke="#38bdf8"/></svg>
-      <div>
-        <h1>Golf Practice Tracker</h1>
-        <div class="small">Dynamic Plans • Drill Library • Stats on-device</div>
+  <div class="container">
+    <!-- HEADER -->
+    <div class="row wrap" style="margin-bottom:16px">
+      <h1 class="grow">🏌️‍♂️ Golf Practice</h1>
+      <div class="row" role="toolbar">
+        <button class="btn ghost" data-nav="home">Home</button>
+        <button class="btn ghost" data-nav="library">Library</button>
+        <button class="btn ghost" data-nav="plans" disabled>Plans</button>
+        <button class="btn ghost" data-nav="stats" disabled>Stats</button>
+        <button class="btn ghost" data-nav="settings" disabled>Settings</button>
       </div>
     </div>
-    <nav>
-      <button class="tab active" data-tab="plan">Plan</button>
-      <button class="tab" data-tab="log">Log</button>
-      <button class="tab" data-tab="stats">Stats</button>
-    </nav>
-  </header>
 
-  <main class="wrap">
-    <!-- PLAN TAB -->
-    <section id="plan" class="grid">
+    <!-- VIEWS -->
+    <div id="view-home" class="grid grid-cols-2">
       <div class="card">
-        <div class="flex-between">
-          <h2>Plan Builder</h2>
-          <div class="row" style="flex:0 1 520px">
-            <div>
-              <label>Saved Plans</label>
-              <select id="planPicker"></select>
-            </div>
-            <div style="flex:0 0 auto;align-self:flex-end;display:flex;gap:8px">
-              <button class="btn" id="loadPlanBtn">Load</button>
-              <button class="btn ghost" id="savePlanBtn">Save As…</button>
-              <button class="btn warn" id="deletePlanBtn">Delete</button>
-            </div>
-          </div>
+        <h2>Quick Actions</h2>
+        <div class="row wrap" style="margin-top:10px">
+          <button class="btn primary">Start Practice</button>
+          <button class="btn">Continue Last</button>
+          <button class="btn">View Stats</button>
         </div>
+        <div class="hr"></div>
+        <div>
+          <span class="pill">Offline‑first</span>
+          <span class="pill">IndexedDB</span>
+          <span class="pill">Mobile‑friendly</span>
+        </div>
+      </div>
 
-        <div class="section">
+      <div class="card">
+        <h2>Recent Sessions</h2>
+        <div class="muted">(Coming soon) Your last 5 sessions will appear here.</div>
+      </div>
+
+      <div class="card">
+        <h2>Favorites</h2>
+        <div class="muted">(Coming soon) Pin drills/games for one‑tap logging.</div>
+      </div>
+
+      <div class="card">
+        <h2>Tips</h2>
+        <p class="muted">Add or edit items in <b>Library</b>. Defaults you set there will prefill your log sheets.</p>
+      </div>
+    </div>
+
+    <!-- LIBRARY VIEW -->
+    <div id="view-library" class="hidden">
+      <div class="card">
+        <div class="toolbar">
+          <h2 class="grow">Library</h2>
           <div class="row">
-            <div>
-              <label>Plan Name</label>
-              <input id="planName" placeholder="e.g., Short Game Focus" />
-            </div>
-            <div>
-              <label>Today’s Focus (optional)</label>
-              <input id="planFocus" placeholder="e.g., Speed control, Up & Down %" />
-            </div>
+            <input id="lib-search" placeholder="Search by name…" />
+            <select id="lib-filter-section">
+              <option value="">All Sections</option>
+              <option>Putting</option>
+              <option>Chipping</option>
+              <option>Range</option>
+              <option>Course</option>
+            </select>
+            <select id="lib-filter-type">
+              <option value="">All Types</option>
+              <option>Drill</option>
+              <option>Game</option>
+              <option>Course</option>
+              <option>Note</option>
+            </select>
+            <button id="btn-add-item" class="btn success icon">➕ <span>Add Item</span></button>
           </div>
         </div>
 
-        <div class="section">
-          <h3>Pick Drills</h3>
-          <p class="small">Tap to include drills in this plan. You can edit or create drills below.</p>
-          <div id="pickers"></div>
-        </div>
-
-        <div class="section">
-          <h3>Drill Library</h3>
-          <p class="small">Add or edit drills. Types:<br/>• <b>Made/Attempts</b> (ma) → stores m/t and %<br/>• <b>Points/Max</b> (pm) → stores points/max and %<br/>• <b>Note</b> (note) → free text per session (not in % stats)</p>
-          <div id="library"></div>
-          <div style="margin-top:10px"><button class="btn" id="addDrillBtn">Add Drill</button></div>
-        </div>
+        <div id="lib-list" class="list"></div>
       </div>
-    </section>
 
-    <!-- LOG TAB -->
-    <section id="log" class="grid hide">
-      <div class="card">
-        <div class="flex-between">
-          <h2>Log Session</h2>
-          <div class="small">Active Plan: <span id="activePlanName">–</span></div>
-        </div>
-        <div class="row">
+      <div class="card" id="lib-editor" aria-live="polite">
+        <h3 id="editor-title">Add / Edit Item</h3>
+        <div class="grid grid-cols-2">
           <div>
-            <label>Date</label>
-            <input id="date" type="date" />
+            <label>Name</label>
+            <input id="f-name" placeholder="e.g., Gate Drill" />
           </div>
           <div>
-            <label>Notes</label>
-            <input id="notes" placeholder="What went well? What to adjust next time?" />
+            <label>Section</label>
+            <select id="f-section">
+              <option value="">— Select —</option>
+              <option>Putting</option>
+              <option>Chipping</option>
+              <option>Range</option>
+              <option>Course</option>
+            </select>
           </div>
-        </div>
-      </div>
-
-      <div id="logForm"></div>
-
-      <div class="card">
-        <div style="display:flex;gap:8px">
-          <button class="btn" id="saveSession">Save Session</button>
-          <button class="btn ghost" id="clearForm">Clear Form</button>
-        </div>
-      </div>
-    </section>
-
-    <!-- STATS TAB -->
-    <section id="stats" class="grid hide">
-      <div class="grid cards">
-        <div class="card">
-          <div class="flex-between">
-            <h2>Stats</h2>
-            <div style="display:flex;gap:8px;align-items:end">
-              <div>
-                <label>Filter by Plan</label>
-                <select id="statsPlanFilter"></select>
-              </div>
-              <button class="btn ghost" id="exportBtn">Export JSON</button>
-              <label class="btn ghost" for="importFile" style="cursor:pointer">Import<input id="importFile" type="file" accept="application/json" style="display:none"/></label>
-              <button class="btn warn" id="resetAll">Reset All</button>
+          <div>
+            <label>Type</label>
+            <select id="f-type">
+              <option value="">— Select —</option>
+              <option>Drill</option>
+              <option>Game</option>
+              <option>Course</option>
+              <option>Note</option>
+            </select>
+          </div>
+          <div>
+            <label>Tags (comma separated)</label>
+            <input id="f-tags" placeholder="lag, short putts" />
+          </div>
+          <div class="grid" style="grid-template-columns:1fr 1fr;gap:10px">
+            <div>
+              <label>Active</label>
+              <select id="f-active">
+                <option value="true">Yes</option>
+                <option value="false">No (hide)</option>
+              </select>
+            </div>
+            <div>
+              <label>Primary Metric Key</label>
+              <input id="f-primary" placeholder="e.g., score or to_par" />
             </div>
           </div>
-          <div id="statsSummary" class="row"></div>
+          <div class="grid" style="grid-column:1/-1">
+            <label>Defaults (key → value)</label>
+            <div class="row wrap" id="defaults-rows"></div>
+            <div style="margin-top:8px"><button id="btn-add-default" class="btn ghost">+ Add Default</button></div>
+          </div>
+          <div style="grid-column:1/-1">
+            <label>Field Specs (JSON)</label>
+            <textarea id="f-fields" rows="10" spellcheck="false" placeholder='[
+  { "key":"score", "label":"Score", "type":"int", "unit":"pts", "isPrimaryMetric":true, "aggregation":"sum" },
+  { "key":"attempts", "label":"Attempts", "type":"int", "unit":"attempts", "aggregation":"sum" }
+]'></textarea>
+            <div class="row wrap" style="margin-top:8px">
+              <button class="btn ghost" id="btn-template-putting">Template: Putting Drill</button>
+              <button class="btn ghost" id="btn-template-range">Template: Range Drill</button>
+              <button class="btn ghost" id="btn-template-course">Template: Course</button>
+            </div>
+          </div>
+        </div>
+        <div class="row" style="margin-top:12px;justify-content:flex-end;gap:10px">
+          <button id="btn-cancel" class="btn ghost">Cancel</button>
+          <button id="btn-save" class="btn primary">Save Item</button>
         </div>
       </div>
 
-      <div class="card">
-        <h2>Sessions</h2>
-        <table id="tbl">
-          <thead>
-            <tr>
-              <th>Date</th>
-              <th>Plan</th>
-              <th>Drills</th>
-              <th>Notes</th>
-              <th></th>
-            </tr>
-          </thead>
-          <tbody></tbody>
-        </table>
+      <div class="card danger-zone">
+        <b>Danger Zone</b>
+        <p class="muted">Clear local database (all data). Useful while testing.</p>
+        <button id="btn-clear-db" class="btn danger">Clear IndexedDB</button>
       </div>
-    </section>
-  </main>
-
-  <footer class="wrap small">All data is stored locally on your device (localStorage). You can export/import from the Stats tab.</footer>
+    </div>
+  </div>
 
   <script>
-  const $ = (q)=>document.querySelector(q);
-  const el = (tag, attrs={}, html='')=>{ const x=document.createElement(tag); Object.entries(attrs).forEach(([k,v])=>x.setAttribute(k,v)); if(html) x.innerHTML=html; return x; };
+  // ------------------------------
+  // Dexie schema & setup
+  // ------------------------------
+  const db = new Dexie('golf_practice');
+  db.version(1).stores({
+    library_items: '++id, name, section, contentType, updatedAt, active',
+    plans: '++id, name, isDefault, updatedAt',
+    plan_items: '++id, planId, libraryItemId, order',
+    sessions: '++id, date, planId',
+    entries: '++id, sessionId, libraryItemId, section, contentType',
+    clubs: 'id',
+    settings: 'key'
+  });
 
-  const store = {
-    keySessions: 'fg_sessions_v2',
-    keyPlans: 'fg_plans_v2',
-    keyActivePlan: 'fg_active_plan_v2',
-    keyDrills: 'fg_drills_v2',
-    load(key, fallback){ try{ return JSON.parse(localStorage.getItem(key)) ?? fallback; }catch{ return fallback; } },
-    save(key, val){ localStorage.setItem(key, JSON.stringify(val)); }
+  // Seed default data if first run
+  async function seedIfNeeded(){
+    const hasRun = await db.settings.get('seed_v1');
+    if(hasRun) return;
+
+    await db.transaction('rw', db.library_items, db.plans, db.plan_items, db.clubs, db.settings, async () => {
+      // Clubs
+      const clubIds = [
+        'Putter','LW','SW','GW','PW','9i','8i','7i','6i','5i','4i','3i','3W','5W','Driver'
+      ];
+      await db.clubs.bulkPut(clubIds.map(id=>({id})));
+
+      // Library (minimal starter set)
+      const puttingGateId = await db.library_items.add({
+        name:'Gate Drill', section:'Putting', contentType:'Drill', active:true,
+        defaults:{ attempts:25 },
+        fields:[
+          { key:'score', label:'Score', type:'int', unit:'pts', isPrimaryMetric:true, aggregation:'sum' },
+          { key:'attempts', label:'Attempts', type:'int', unit:'attempts', aggregation:'sum', required:true },
+          { key:'distance', label:'Distance', type:'float', unit:'ft', aggregation:'avg', role:'context' }
+        ],
+        createdAt:Date.now(), updatedAt:Date.now(), tags:['fundamentals']
+      });
+
+      const rangeLadderId = await db.library_items.add({
+        name:'Lag Distance Ladder', section:'Range', contentType:'Drill', active:true,
+        defaults:{ attempts:20 },
+        fields:[
+          { key:'score', label:'Score', type:'int', unit:'pts', isPrimaryMetric:true, aggregation:'sum' },
+          { key:'attempts', label:'Attempts', type:'int', unit:'attempts', aggregation:'sum', required:true },
+          { key:'club', label:'Club', type:'enum', enumValues:clubIds, role:'context' },
+          { key:'carry_avg', label:'Carry Avg', type:'float', unit:'yds', aggregation:'avg' }
+        ],
+        createdAt:Date.now(), updatedAt:Date.now(), tags:['distance control']
+      });
+
+      const rugglesId = await db.library_items.add({
+        name:'Ruggles Ferry', section:'Course', contentType:'Course', active:true,
+        defaults:{ holes:3 },
+        fields:[
+          { key:'to_par', label:'To Par', type:'int', unit:'toPar', isPrimaryMetric:true, aggregation:'sum' },
+          { key:'holes', label:'Holes', type:'int', unit:'holes', required:true, aggregation:'sum' }
+        ],
+        createdAt:Date.now(), updatedAt:Date.now(), tags:['home course']
+      });
+
+      // Plans (Default)
+      const defaultPlanId = await db.plans.add({ name:'Default', isDefault:true, createdAt:Date.now(), updatedAt:Date.now() });
+      await db.plan_items.bulkAdd([
+        { planId: defaultPlanId, libraryItemId: puttingGateId, order: 1 },
+        { planId: defaultPlanId, libraryItemId: rangeLadderId, order: 2 },
+        { planId: defaultPlanId, libraryItemId: rugglesId, order: 3 },
+      ]);
+
+      await db.settings.put({ key:'seed_v1', value:true });
+    });
+  }
+
+  // ------------------------------
+  // Mini router (no page reload)
+  // ------------------------------
+  const views = {
+    home: document.getElementById('view-home'),
+    library: document.getElementById('view-library')
   };
-
-  // Default Drill Library
-  const defaultDrills = [
-    {id:'put_gate', name:'Gate', cat:'Putting', type:'ma', defAttempts:20},
-    {id:'put_circle', name:'Circle 3ft', cat:'Putting', type:'ma', defAttempts:10},
-    {id:'put_lag', name:'Lag Points', cat:'Putting', type:'pm', defAttempts:15},
-    {id:'chip_towel', name:'Towel', cat:'Chipping', type:'ma', defAttempts:30},
-    {id:'chip_updown', name:'Up & Down', cat:'Chipping', type:'ma', defAttempts:9},
-    {id:'rng_gir', name:'Virtual 9 GIR', cat:'Range', type:'ma', defAttempts:9},
-    {id:'rng_iron', name:'7i Narrow Target', cat:'Range', type:'ma', defAttempts:10},
-    {id:'rng_drv', name:'Driver Narrow Target', cat:'Range', type:'ma', defAttempts:10},
-    {id:'rng_note', name:'Range Notes', cat:'Range', type:'note'}
-  ];
-
-  // State
-  let drills = store.load(store.keyDrills, defaultDrills);
-  let plans = store.load(store.keyPlans, [
-    {id:'plan_std', name:'Standard Session', focus:'', drills:['put_gate','put_circle','put_lag','chip_towel','chip_updown','rng_gir','rng_iron','rng_drv']}
-  ]);
-  let activePlanId = localStorage.getItem(store.keyActivePlan) || plans[0].id;
-  let sessions = store.load(store.keySessions, []);
-
-  // Tabs
-  document.querySelectorAll('.tab').forEach(btn=>btn.addEventListener('click',()=>{
-    document.querySelectorAll('.tab').forEach(b=>b.classList.remove('active'));
-    btn.classList.add('active');
-    const tab = btn.dataset.tab;
-    document.querySelectorAll('main section').forEach(s=>s.classList.add('hide'));
-    document.getElementById(tab).classList.remove('hide');
-    if(tab==='plan') renderPlan();
-    if(tab==='log') renderLog();
-    if(tab==='stats') renderStats();
-  }));
-
-  // Helpers
-  const byCat = (list)=> list.reduce((m,d)=>{ (m[d.cat]??=[]).push(d); return m; },{});
-  const getPlan = (id)=> plans.find(p=>p.id===id);
-  const getDrill = (id)=> drills.find(d=>d.id===id);
-
-  // ---------- PLAN TAB ----------
-  function renderPlan(){
-    // picker for plans
-    const planPicker = $('#planPicker'); planPicker.innerHTML = '';
-    plans.forEach(p=> planPicker.appendChild(el('option',{value:p.id}, p.name)));
-    planPicker.value = activePlanId;
-    $('#planName').value = getPlan(activePlanId)?.name ?? '';
-    $('#planFocus').value = getPlan(activePlanId)?.focus ?? '';
-
-    // drill pickers (chips)
-    const pickers = $('#pickers'); pickers.innerHTML='';
-    const cats = byCat(drills);
-    Object.keys(cats).forEach(cat=>{
-      const card = el('div',{class:'card'});
-      card.appendChild(el('h3',{}, cat));
-      const list = el('div',{class:'list'});
-      cats[cat].forEach(d=>{
-        const chip = el('div',{class:'chip'+(getPlan(activePlanId).drills.includes(d.id)?' sel':'')});
-        chip.textContent = d.name + (d.type!=='note' ? ` (${d.type==='ma'?'m/a':'pts'})` : ' (note)');
-        chip.onclick = ()=>{
-          const plan = getPlan(activePlanId);
-          const has = plan.drills.includes(d.id);
-          if(has){ plan.drills = plan.drills.filter(x=>x!==d.id); chip.classList.remove('sel'); }
-          else { plan.drills.push(d.id); chip.classList.add('sel'); }
-          store.save(store.keyPlans, plans);
-        };
-        list.appendChild(chip);
-      });
-      card.appendChild(list);
-      pickers.appendChild(card);
-    });
-
-    // library (editable rows)
-    const lib = $('#library'); lib.innerHTML = '';
-    const table = el('table');
-    table.innerHTML = `<thead><tr><th>Name</th><th>Category</th><th>Type</th><th>Default Attempts</th><th></th></tr></thead>`;
-    const tb = el('tbody');
-    drills.forEach(d=>{
-      const tr = el('tr');
-      tr.appendChild(el('td',{}, `<input data-k="name" data-id="${d.id}" value="${d.name}">`));
-      tr.appendChild(el('td',{}, `<select data-k="cat" data-id="${d.id}">
-        ${['Putting','Chipping','Range'].map(c=>`<option ${d.cat===c?'selected':''}>${c}</option>`).join('')}
-      </select>`));
-      tr.appendChild(el('td',{}, `<select data-k="type" data-id="${d.id}">
-        ${['ma','pm','note'].map(t=>`<option ${d.type===t?'selected':''} value="${t}">${t}</option>`).join('')}
-      </select>`));
-      tr.appendChild(el('td',{}, `<input data-k="defAttempts" data-id="${d.id}" type="number" min="0" value="${d.defAttempts??0}">`));
-      tr.appendChild(el('td',{}, `<button class="btn ghost" data-del="${d.id}">Delete</button>`));
-      tb.appendChild(tr);
-    });
-    table.appendChild(tb);
-    lib.appendChild(table);
-
-    // listeners for edit
-    lib.querySelectorAll('input[data-id], select[data-id]').forEach(inp=>{
-      inp.addEventListener('change', (e)=>{
-        const id = inp.getAttribute('data-id');
-        const k = inp.getAttribute('data-k');
-        const d = getDrill(id);
-        if(k==='defAttempts') d[k] = +inp.value || 0; else d[k] = inp.value;
-        store.save(store.keyDrills, drills);
-      });
-    });
-    lib.querySelectorAll('button[data-del]').forEach(btn=>{
-      btn.onclick = ()=>{
-        const id = btn.getAttribute('data-del');
-        if(!confirm('Delete this drill from library?')) return;
-        drills = drills.filter(d=>d.id!==id);
-        // remove from plans
-        plans.forEach(p=> p.drills = p.drills.filter(x=>x!==id));
-        store.save(store.keyDrills, drills);
-        store.save(store.keyPlans, plans);
-        renderPlan();
-      };
-    });
-
-    // add drill
-    $('#addDrillBtn').onclick = ()=>{
-      const name = prompt('Drill name (e.g., 5ft Circle)'); if(!name) return;
-      const cat = prompt('Category (Putting / Chipping / Range)','Putting') || 'Putting';
-      const type = prompt('Type (ma/pm/note)','ma') || 'ma';
-      const defAttempts = +(prompt('Default attempts (e.g., 20)','20') || 0);
-      const id = name.toLowerCase().replace(/[^a-z0-9]+/g,'_') + '_' + Math.random().toString(36).slice(2,6);
-      drills.push({id,name,cat,type,defAttempts});
-      store.save(store.keyDrills, drills);
-      renderPlan();
-    };
-
-    // plan buttons
-    $('#loadPlanBtn').onclick = ()=>{
-      activePlanId = planPicker.value;
-      localStorage.setItem(store.keyActivePlan, activePlanId);
-      $('#planName').value = getPlan(activePlanId).name;
-      $('#planFocus').value = getPlan(activePlanId).focus || '';
-      renderPlan();
-    };
-    $('#savePlanBtn').onclick = ()=>{
-      const name = prompt('Save this as a new plan name:', $('#planName').value || 'My Plan'); if(!name) return;
-      const id = 'plan_' + Math.random().toString(36).slice(2,8);
-      const cur = getPlan(activePlanId);
-      const copy = {id, name, focus: $('#planFocus').value, drills: [...cur.drills]};
-      plans.push(copy);
-      store.save(store.keyPlans, plans);
-      activePlanId = id; localStorage.setItem(store.keyActivePlan, id);
-      renderPlan();
-    };
-    $('#deletePlanBtn').onclick = ()=>{
-      if(plans.length<=1) return alert('Keep at least one plan.');
-      if(!confirm('Delete this plan?')) return;
-      plans = plans.filter(p=>p.id!==activePlanId);
-      store.save(store.keyPlans, plans);
-      activePlanId = plans[0].id; localStorage.setItem(store.keyActivePlan, activePlanId);
-      renderPlan();
-    };
-
-    // keep name/focus synced
-    $('#planName').onchange = ()=>{ const p=getPlan(activePlanId); p.name=$('#planName').value; store.save(store.keyPlans, plans); };
-    $('#planFocus').onchange = ()=>{ const p=getPlan(activePlanId); p.focus=$('#planFocus').value; store.save(store.keyPlans, plans); };
+  function show(id){
+    Object.values(views).forEach(v=>v.classList.add('hidden'));
+    views[id].classList.remove('hidden');
+    // Persist last view
+    localStorage.setItem('lastView', id);
   }
 
-  // ---------- LOG TAB ----------
-  function renderLog(){
-    const plan = getPlan(activePlanId);
-    $('#activePlanName').textContent = plan ? plan.name : '–';
-    $('#date').valueAsDate = new Date();
-
-    const form = $('#logForm'); form.innerHTML = '';
-    const cats = byCat(plan.drills.map(getDrill).filter(Boolean));
-    Object.keys(cats).forEach(cat=>{
-      const card = el('div',{class:'card'});
-      card.appendChild(el('h3',{}, cat));
-      const grid = el('div',{class:'row'});
-      cats[cat].forEach(d=>{
-        const group = el('div',{});
-        if(d.type==='ma'){
-          group.innerHTML = `<label>${d.name} — Made / Attempts</label>
-          <div class="row">
-            <input type="number" min="0" id="m_${d.id}" placeholder="made">
-            <input type="number" min="1" id="t_${d.id}" placeholder="${d.defAttempts||''}">
-          </div>`;
-        }else if(d.type==='pm'){
-          group.innerHTML = `<label>${d.name} — Points / Max</label>
-          <div class="row">
-            <input type="number" min="0" id="m_${d.id}" placeholder="points">
-            <input type="number" min="1" id="t_${d.id}" placeholder="${d.defAttempts||''}">
-          </div>`;
-        }else{ // note
-          group.innerHTML = `<label>${d.name} — Note</label>
-          <input type="text" id="n_${d.id}" placeholder="notes for this drill">`;
-        }
-        grid.appendChild(group);
-      });
-      card.appendChild(grid);
-      form.appendChild(card);
+  // Nav buttons
+  document.querySelectorAll('[data-nav]').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      const id = btn.getAttribute('data-nav');
+      if(!views[id]) return; // disabled for not-yet-built
+      show(id);
+      if(id==='library') renderLibraryList();
     });
+  });
 
-    $('#clearForm').onclick = ()=>{
-      document.querySelectorAll('#log input').forEach(i=>{ if(i.type==='date') return; i.value=''; });
-    };
+  // ------------------------------
+  // Library: list + filters
+  // ------------------------------
+  const libList = document.getElementById('lib-list');
+  const fSearch = document.getElementById('lib-search');
+  const fFilterSection = document.getElementById('lib-filter-section');
+  const fFilterType = document.getElementById('lib-filter-type');
 
-    $('#saveSession').onclick = ()=>{
-      const measures = {};
-      plan.drills.forEach(id=>{
-        const d = getDrill(id);
-        if(d.type==='ma' || d.type==='pm'){
-          const m = +($('#m_'+id)?.value||0), t = +($('#t_'+id)?.value||0);
-          measures[id] = {type:d.type, m, t};
-        }else{
-          const n = ($('#n_'+id)?.value||'').trim();
-          if(n) measures[id] = {type:'note', n};
-        }
-      });
-      const s = {
-        id: crypto.randomUUID(),
-        date: $('#date').value || new Date().toISOString().slice(0,10),
-        planId: activePlanId,
-        planName: plan.name,
-        focus: plan.focus || '',
-        measures,
-        notes: $('#notes').value||''
-      };
-      sessions.unshift(s);
-      store.save(store.keySessions, sessions);
-      alert('Session saved.');
-      renderStats();
-    };
-  }
+  [fSearch, fFilterSection, fFilterType].forEach(el=>{
+    el.addEventListener('input', renderLibraryList);
+  });
 
-  // ---------- STATS TAB ----------
-  function renderStats(){
-    // Plan filter
-    const sel = $('#statsPlanFilter'); sel.innerHTML = '<option value="">All plans</option>';
-    plans.forEach(p=> sel.appendChild(el('option',{value:p.id}, p.name)));
-    sel.value = '';
+  async function renderLibraryList(){
+    const q = (fSearch.value||'').toLowerCase();
+    const sec = fFilterSection.value;
+    const typ = fFilterType.value;
 
-    const summary = $('#statsSummary'); const tbody = $('#tbl tbody');
-    function computeAndRender(filterPlanId=''){
-      summary.innerHTML=''; tbody.innerHTML='';
-      // Aggregate per drill across last 50 sessions (filtered)
-      const recent = sessions.filter(s=> !filterPlanId || s.planId===filterPlanId).slice(0, 50);
-      const agg = {}; // id -> {name,cat,type, vals[]}
-      recent.forEach(s=>{
-        Object.entries(s.measures||{}).forEach(([id,val])=>{
-          const d = getDrill(id); if(!d) return;
-          if(!agg[id]) agg[id] = {name:d.name, cat:d.cat, type:val.type, vals:[]};
-          agg[id].vals.push(val);
-        });
-      });
-      // Build stat chips
-      Object.entries(agg).forEach(([id,info])=>{
-        if(info.type==='note') return;
-        const pct = (arr)=>{
-          const nums = arr.filter(x=>x.t>0).map(x=> (x.m/x.t*100));
-          if(!nums.length) return null;
-          const avg = nums.reduce((a,b)=>a+b,0)/nums.length;
-          return avg.toFixed(1)+'%';
-        };
-        const card = el('div',{class:'chip'});
-        card.innerHTML = `<b>${info.name}</b> <span class="small">(${info.cat})</span><br/>Avg: ${pct(info.vals)??'–'}`;
-        summary.appendChild(card);
-      });
+    let items = await db.library_items.toArray();
+    items = items.filter(it=>it.active!==false);
 
-      // Sessions table
-      recent.forEach(s=>{
-        const tr = el('tr');
-        const drillsHTML = Object.entries(s.measures).map(([id,val])=>{
-          const d = getDrill(id); if(!d) return '';
-          if(val.type==='note'){ return `<div><b>${d.name}</b>: ${val.n}</div>`; }
-          const p = (val.t>0)? Math.round(val.m/val.t*100)+'%' : '–';
-          return `<div><b>${d.name}</b>: ${val.m}/${val.t} (${p})</div>`;
-        }).join('');
-        tr.innerHTML = `
-          <td><span class="pill">${s.date}</span></td>
-          <td>${s.planName||''}</td>
-          <td>${drillsHTML}</td>
-          <td class="small">${(s.notes||'').slice(0,120)}</td>
-          <td><button class="btn ghost" data-del="${s.id}">Delete</button></td>`;
-        tbody.appendChild(tr);
-      });
-      tbody.querySelectorAll('button[data-del]').forEach(b=> b.onclick = ()=>{
-        const id = b.getAttribute('data-del');
-        sessions = sessions.filter(x=>x.id!==id);
-        store.save(store.keySessions, sessions);
-        computeAndRender(sel.value);
-      });
+    if(q) items = items.filter(it=> it.name.toLowerCase().includes(q));
+    if(sec) items = items.filter(it=> it.section===sec);
+    if(typ) items = items.filter(it=> it.contentType===typ);
+
+    // Sort by section then name
+    items.sort((a,b)=> (a.section.localeCompare(b.section)) || a.name.localeCompare(b.name));
+
+    libList.innerHTML = '';
+    if(!items.length){
+      libList.innerHTML = `<div class="muted">No items found. Try clearing filters.</div>`;
+      return;
     }
 
-    sel.onchange = ()=> computeAndRender(sel.value);
-    computeAndRender('');
+    for(const it of items){
+      const div = document.createElement('div');
+      div.className = 'item';
+      const tags = (it.tags||[]).map(t=>`<span class="tag">${t}</span>`).join(' ');
+      div.innerHTML = `
+        <div class="meta">
+          <strong>${it.name}</strong>
+          <span class="pill">${it.section}</span>
+          <span class="pill">${it.contentType}</span>
+          ${tags}
+        </div>
+        <div class="row">
+          <button class="btn ghost" data-edit="${it.id}">Edit</button>
+          <button class="btn ghost" data-toggle="${it.id}">${it.active===false? 'Activate':'Hide'}</button>
+          <span class="kbd">id:${it.id}</span>
+        </div>`;
+      libList.appendChild(div);
+    }
+
+    // Wire actions
+    libList.querySelectorAll('[data-edit]').forEach(b=> b.addEventListener('click', ()=> loadEditor(parseInt(b.dataset.edit))));
+    libList.querySelectorAll('[data-toggle]').forEach(b=> b.addEventListener('click', ()=> toggleActive(parseInt(b.dataset.toggle))));
   }
 
-  // Export / Import / Reset
-  document.getElementById('exportBtn').onclick = ()=>{
-    const data = {
-      drills, plans, activePlanId, sessions
-    };
-    const blob = new Blob([JSON.stringify(data,null,2)], {type:'application/json'});
-    const a = document.createElement('a');
-    a.href = URL.createObjectURL(blob);
-    a.download = 'golf_practice_backup_v2.json';
-    a.click();
-  };
-  document.getElementById('importFile').addEventListener('change',(e)=>{
-    const file = e.target.files[0]; if(!file) return;
-    const reader = new FileReader();
-    reader.onload = ()=>{
-      try{
-        const data = JSON.parse(reader.result);
-        if(Array.isArray(data.drills)) drills = data.drills;
-        if(Array.isArray(data.plans)) plans = data.plans;
-        if(data.activePlanId) activePlanId = data.activePlanId;
-        if(Array.isArray(data.sessions)) sessions = data.sessions;
-        store.save(store.keyDrills, drills);
-        store.save(store.keyPlans, plans);
-        localStorage.setItem(store.keyActivePlan, activePlanId);
-        store.save(store.keySessions, sessions);
-        alert('Import complete.');
-        renderPlan(); renderLog(); renderStats();
-      }catch(err){ alert('Import failed. Invalid file.'); }
-    };
-    reader.readAsText(file);
-  });
-  document.getElementById('resetAll').onclick = ()=>{
-    if(!confirm('Delete ALL plans, drills, and sessions on this device?')) return;
-    localStorage.removeItem(store.keyDrills);
-    localStorage.removeItem(store.keyPlans);
-    localStorage.removeItem(store.keyActivePlan);
-    localStorage.removeItem(store.keySessions);
-    drills = defaultDrills.slice();
-    plans = [{id:'plan_std', name:'Standard Session', focus:'', drills:['put_gate','put_circle','put_lag','chip_towel','chip_updown','rng_gir','rng_iron','rng_drv']}];
-    activePlanId = plans[0].id;
-    sessions = [];
-    renderPlan(); renderLog(); renderStats();
+  async function toggleActive(id){
+    const it = await db.library_items.get(id);
+    if(!it) return;
+    await db.library_items.update(id, { active: !(it.active!==false), updatedAt:Date.now() });
+    renderLibraryList();
+  }
+
+  // ------------------------------
+  // Library: editor
+  // ------------------------------
+  const editor = {
+    title: document.getElementById('editor-title'),
+    name: document.getElementById('f-name'),
+    section: document.getElementById('f-section'),
+    type: document.getElementById('f-type'),
+    tags: document.getElementById('f-tags'),
+    active: document.getElementById('f-active'),
+    primary: document.getElementById('f-primary'),
+    fields: document.getElementById('f-fields'),
+    defaultsRows: document.getElementById('defaults-rows'),
+    cancel: document.getElementById('btn-cancel'),
+    save: document.getElementById('btn-save'),
+    addDefault: document.getElementById('btn-add-default'),
   };
 
-  // initial render
-  renderPlan();
+  let editingId = null;
+
+  function clearEditor(){
+    editingId = null;
+    editor.title.textContent = 'Add / Edit Item';
+    editor.name.value = '';
+    editor.section.value = '';
+    editor.type.value = '';
+    editor.tags.value = '';
+    editor.active.value = 'true';
+    editor.primary.value = '';
+    editor.fields.value = '';
+    editor.defaultsRows.innerHTML = '';
+  }
+
+  function addDefaultRow(k='', v=''){
+    const wrap = document.createElement('div');
+    wrap.className = 'row';
+    wrap.style.marginTop = '6px';
+    wrap.innerHTML = `
+      <input class="def-k" placeholder="key (e.g., attempts)" value="${k}"/>
+      <input class="def-v" placeholder="value (e.g., 20)" value="${v}"/>
+      <button class="btn ghost">✖</button>
+    `;
+    wrap.querySelector('button').addEventListener('click', ()=> wrap.remove());
+    editor.defaultsRows.appendChild(wrap);
+  }
+
+  function defaultsFromUI(){
+    const rows = editor.defaultsRows.querySelectorAll('.row');
+    const obj = {};
+    rows.forEach(r=>{
+      const k = r.querySelector('.def-k').value.trim();
+      const vRaw = r.querySelector('.def-v').value.trim();
+      if(!k) return;
+      let v = vRaw;
+      if(vRaw.toLowerCase() === 'null') v = null;
+      else if(vRaw === '') v = '';
+      else if(!isNaN(Number(vRaw))) v = Number(vRaw);
+      obj[k] = v;
+    });
+    return obj;
+  }
+
+  function defaultsToUI(obj={}){
+    editor.defaultsRows.innerHTML='';
+    Object.entries(obj).forEach(([k,v])=> addDefaultRow(k, String(v)));
+  }
+
+  async function loadEditor(id){
+    const it = await db.library_items.get(id);
+    if(!it) return;
+    editingId = id;
+    editor.title.textContent = `Editing: ${it.name}`;
+    editor.name.value = it.name;
+    editor.section.value = it.section;
+    editor.type.value = it.contentType;
+    editor.tags.value = (it.tags||[]).join(', ');
+    editor.active.value = (it.active!==false).toString();
+    editor.primary.value = (it.fields?.find(f=>f.isPrimaryMetric)?.key)||'';
+    editor.fields.value = JSON.stringify(it.fields||[], null, 2);
+    defaultsToUI(it.defaults||{});
+    window.scrollTo({top:document.body.scrollHeight, behavior:'smooth'});
+  }
+
+  // Template helpers
+  document.getElementById('btn-template-putting').addEventListener('click', ()=>{
+    editor.fields.value = JSON.stringify([
+      { key:'score', label:'Score', type:'int', unit:'pts', isPrimaryMetric:true, aggregation:'sum' },
+      { key:'attempts', label:'Attempts', type:'int', unit:'attempts', aggregation:'sum', required:true },
+      { key:'distance', label:'Distance', type:'float', unit:'ft', aggregation:'avg', role:'context' }
+    ], null, 2);
+  });
+  document.getElementById('btn-template-range').addEventListener('click', async ()=>{
+    const clubs = await db.clubs.toArray();
+    editor.fields.value = JSON.stringify([
+      { key:'score', label:'Score', type:'int', unit:'pts', isPrimaryMetric:true, aggregation:'sum' },
+      { key:'attempts', label:'Attempts', type:'int', unit:'attempts', aggregation:'sum', required:true },
+      { key:'club', label:'Club', type:'enum', enumValues: clubs.map(c=>c.id), role:'context' },
+      { key:'carry_avg', label:'Carry Avg', type:'float', unit:'yds', aggregation:'avg' }
+    ], null, 2);
+  });
+  document.getElementById('btn-template-course').addEventListener('click', ()=>{
+    editor.fields.value = JSON.stringify([
+      { key:'to_par', label:'To Par', type:'int', unit:'toPar', isPrimaryMetric:true, aggregation:'sum' },
+      { key:'holes', label:'Holes', type:'int', unit:'holes', required:true, aggregation:'sum' }
+    ], null, 2);
+  });
+
+  // Add default row
+  editor.addDefault.addEventListener('click', ()=> addDefaultRow());
+  document.getElementById('btn-add-item').addEventListener('click', ()=>{ clearEditor(); addDefaultRow(); window.scrollTo({top:document.body.scrollHeight, behavior:'smooth'}); });
+  editor.cancel.addEventListener('click', clearEditor);
+
+  // Save item (Create/Update)
+  editor.save.addEventListener('click', async ()=>{
+    // Validation
+    const name = editor.name.value.trim();
+    const section = editor.section.value;
+    const contentType = editor.type.value;
+    const tags = editor.tags.value.split(',').map(s=>s.trim()).filter(Boolean);
+    const active = editor.active.value === 'true';
+    const primaryKey = editor.primary.value.trim();
+
+    if(!name) return alert('Name is required.');
+    if(!section) return alert('Section is required.');
+    if(!contentType) return alert('Type is required.');
+
+    let fields;
+    try{ fields = JSON.parse(editor.fields.value || '[]'); }
+    catch(e){ return alert('Field Specs JSON is invalid.'); }
+
+    if(!Array.isArray(fields) || fields.length===0){
+      return alert('At least one FieldSpec is required.');
+    }
+
+    // Ensure primary metric exists if provided
+    if(primaryKey){
+      const hit = fields.find(f=>f.key===primaryKey);
+      if(!hit) return alert('Primary Metric Key must match one of the field keys.');
+      // mark it
+      fields = fields.map(f=> ({...f, isPrimaryMetric: f.key===primaryKey}));
+    }
+
+    const defaults = defaultsFromUI();
+
+    // Uniqueness (name, case-insensitive)
+    const existing = await db.library_items.where('name').equalsIgnoreCase(name).toArray();
+    if(existing.length && (existing[0].id !== editingId)){
+      return alert('An item with this name already exists. Choose a different name.');
+    }
+
+    const payload = { name, section, contentType, tags, active, fields, defaults, updatedAt: Date.now() };
+
+    if(editingId){
+      await db.library_items.update(editingId, payload);
+    }else{
+      payload.createdAt = Date.now();
+      await db.library_items.add(payload);
+    }
+
+    clearEditor();
+    renderLibraryList();
+    alert('Saved.');
+  });
+
+  // Toggle hide/show
+  async function init(){
+    await seedIfNeeded();
+    const last = localStorage.getItem('lastView') || 'home';
+    show(last);
+    if(last==='library') renderLibraryList();
+  }
+
+  document.getElementById('btn-clear-db').addEventListener('click', async ()=>{
+    if(!confirm('This will remove ALL local data. Proceed?')) return;
+    await db.delete();
+    location.reload();
+  });
+
+  init();
   </script>
 </body>
 </html>
