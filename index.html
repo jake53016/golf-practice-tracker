@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Golf Stats (Dexie v0)</title>
+  <title>Golf Practice Tracker</title>
   <meta name="theme-color" content="#0ea5e9" />
   <style>
     :root{--bg:#0b1220;--card:#101829;--ink:#e5ecff;--muted:#9db4ff;--accent:#38bdf8;--ok:#22c55e;--bad:#ef4444;--warn:#f59e0b}
@@ -11,9 +11,13 @@
     html,body{height:100%}
     body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,"Helvetica Neue",Arial; background:linear-gradient(180deg,#0b1220,#0f172a); color:var(--ink)}
     a{color:var(--accent)}
+    .wrap{max-width:980px;margin:0 auto;padding:16px}
     header{display:flex;gap:12px;align-items:center;justify-content:space-between;position:sticky;top:0;background:rgba(11,18,32,.85);backdrop-filter:blur(6px);padding:10px 16px;border-bottom:1px solid #1f2a44;z-index:5}
     .title{display:flex;gap:10px;align-items:center}
-    .wrap{max-width:1100px;margin:0 auto;padding:16px}
+    .badge{font-size:12px;border:1px solid #1f2a44;padding:2px 8px;border-radius:999px;color:var(--muted)}
+    nav{display:flex;gap:8px}
+    .tab{border:1px solid #1f2a44;background:var(--card);color:var(--ink);padding:8px 12px;border-radius:12px;cursor:pointer}
+    .tab.active{border-color:var(--accent);box-shadow:0 0 0 2px rgba(56,189,248,.25) inset}
     .grid{display:grid;gap:12px}
     .cards{grid-template-columns:repeat(auto-fit,minmax(260px,1fr))}
     .card{background:var(--card);border:1px solid #1f2a44;border-radius:16px;padding:14px}
@@ -21,217 +25,363 @@
     h1{font-size:22px}
     h2{font-size:18px;color:var(--muted)}
     h3{font-size:16px;color:var(--muted)}
-    .small{font-size:12px;color:#9db4ff}
-    .pill{display:inline-block;padding:2px 8px;border-radius:999px;border:1px solid #223055;color:#c7d2fe;font-size:12px}
-    .row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
-    .btn{display:inline-flex;gap:8px;align-items:center;justify-content:center;background:var(--accent);border:0;color:#052338;padding:10px 14px;border-radius:12px;font-weight:600;cursor:pointer;text-decoration:none}
+    label{font-size:13px;color:#c7d2fe}
+    input,select,textarea{width:100%;padding:10px 12px;border-radius:12px;border:1px solid #2a3558;background:#0c1427;color:var(--ink);outline:none}
+    input[type=number]{appearance:textfield}
+    .row{display:flex;gap:10px}
+    .row>div{flex:1}
+    .btn{display:inline-flex;gap:8px;align-items:center;justify-content:center;background:var(--accent);border:0;color:#052338;padding:10px 14px;border-radius:12px;font-weight:600;cursor:pointer}
     .btn.ghost{background:transparent;border:1px solid #1f2a44;color:var(--ink)}
     .btn.warn{background:var(--bad);color:white}
+    .small{font-size:12px;color:var(--muted)}
+    table{width:100%;border-collapse:collapse}
+    th,td{border-bottom:1px solid #1f2a44;padding:8px 6px;text-align:left;font-size:13px}
+    .pill{display:inline-block;padding:2px 8px;border-radius:999px;border:1px solid #223055;color:#c7d2fe;font-size:12px}
+    .stat{display:flex;flex-direction:column;gap:6px}
+    .stat b{font-size:20px}
+    footer{color:var(--muted);text-align:center;margin:40px 0}
     .hide{display:none}
-    footer{color:#9db4ff}
-    /*icon button for Settings in header */
-    .icon-btn{
-      display:inline-flex;align-items:center;justify-content:center;
-      width:38px;height:38px;border-radius:10px;cursor:pointer;
-      background:transparent;border:1px solid #1f2a44;color:var(--ink);
-    }
-    .icon-btn:hover{ box-shadow:0 0 0 2px rgba(56,189,248,.2) inset; border-color:var(--accent); }
-    .icon-btn:focus-visible{ outline:2px solid var(--accent); outline-offset:2px; }    
-  </style>  
-  
-  <!-- Dexie (IndexedDB wrapper) -->
-  <script src="https://unpkg.com/dexie@latest/dist/dexie.min.js"></script> 
-
+  </style>
 </head>
-
-<body>  
+<body>
   <header>
-    <div class="title" aria-label="App title">
-      <svg width="28" height="28" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M20 21H4m4.5-5.5L20 3l-5.5 11.5L9 15.5Z" stroke="#38bdf8" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><circle cx="6" cy="18" r="2" stroke="#38bdf8"/></svg>
+    <div class="title">
+      <svg width="28" height="28" viewBox="0 0 24 24" fill="none"><path d="M20 21H4m4.5-5.5L20 3l-5.5 11.5L9 15.5Z" stroke="#38bdf8" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><circle cx="6" cy="18" r="2" stroke="#38bdf8"/></svg>
       <div>
-        <h1>Golf Stats</h1>
-        <div class="small">Dexie • Summary • Practice • Stats</div>
+        <h1>Golf Practice Tracker</h1>
+        <div class="small">Fairways & Greens • Offline-first • Saved on your device</div>
       </div>
     </div>
-
-    <!-- NEW: top-right Settings button -->
-    <button id="topSettingsBtn" class="icon-btn" aria-label="Open settings" title="Settings">
-      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-        <path d="M12 8.5a3.5 3.5 0 1 0 0 7 3.5 3.5 0 0 0 0-7Zm8 3.5a8.5 8.5 0 0 0-.1-1l2.1-1.6-2-3.5-2.5 1a8.8 8.8 0 0 0-1.7-1l-.3-2.7H8.5l-.3 2.7a8.8 8.8 0 0 0-1.7 1l-2.5-1-2 3.5L4 11a8.8 8.8 0 0 0 0 2l-2.1 1.6 2 3.5 2.5-1a8.8 8.8 0 0 0 1.7 1l.3 2.7h4.9l.3-2.7a8.8 8.8 0 0 0 1.7-1l2.5 1 2-3.5L19.9 13a8.5 8.5 0 0 0 .1-1Z"
-              stroke="#9db4ff" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/>
-      </svg>
-    </button>
+    <nav>
+      <button class="tab active" data-tab="plan">Plan</button>
+      <button class="tab" data-tab="log">Log Session</button>
+      <button class="tab" data-tab="history">History & Stats</button>
+    </nav>
   </header>
 
   <main class="wrap">
-    <!-- HOME / DASHBOARD -->
-    <section id="home" class="grid">
+    <!-- PLAN TAB -->
+    <section id="plan" class="grid">
+      <div class="card">
+        <h2>Practice Plan</h2>
+        <p class="small">Edit any text below to match what you want to do. It auto-saves.</p>
+        <textarea id="planText" rows="14"></textarea>
+        <div style="display:flex;gap:8px;margin-top:10px">
+          <button class="btn" id="resetPlan">Reset to Template</button>
+          <button class="btn ghost" id="copyPlan">Copy Text</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- LOG TAB -->
+    <section id="log" class="grid hide">
+      <div class="card">
+        <h2>Session Details</h2>
+        <div class="row">
+          <div>
+            <label>Date</label>
+            <input id="date" type="date" />
+          </div>
+          <div>
+            <label>Duration (min)</label>
+            <input id="minutes" type="number" min="10" step="5" placeholder="90" />
+          </div>
+        </div>
+      </div>
+
       <div class="grid cards">
         <div class="card">
-          <h2>Get started</h2>
-          <p class="small">No defaults are loaded. Start a practice or go to Stats.</p>
+          <h3>Putting</h3>
           <div class="row">
-            <a class="btn" href="#practice" id="ctaStart">Start new practice</a>
-            <a class="btn ghost" href="#stats">View stats</a>
+            <div>
+              <label>Gate Drill (0–20)</label>
+              <input id="put_gate" type="number" min="0" max="20" />
+            </div>
+            <div>
+              <label>Circle 3ft (0–10)</label>
+              <input id="put_circle" type="number" min="0" max="10" />
+            </div>
           </div>
-          
-        </div>
-        <div class="card">
-          <h2>Recent Stats</h2>
-          <div class="row" style="margin-top:4px">
-            <div><div class="small">Total sessions</div><div id="k_total" class="pill">0</div></div>
-            <div><div class="small">First session</div><div id="k_first" class="pill">–</div></div>
-            <div><div class="small">Last session</div><div id="k_last" class="pill">–</div></div>
+          <div class="row" style="margin-top:8px">
+            <div>
+              <label>Lag Points (&le;3ft) (0–15)</label>
+              <input id="put_lag" type="number" min="0" max="15" />
+            </div>
+            <div>
+              <label>Notes</label>
+              <input id="put_notes" type="text" placeholder="tempo, start line, etc." />
+            </div>
           </div>
         </div>
-        
+
         <div class="card">
-          <h2>Recent activity</h2>
-          <div id="recentList" class="small">No sessions yet. Your last three practices will appear here.</div>
+          <h3>Chipping / Pitching</h3>
+          <div class="row">
+            <div>
+              <label>Landing Towel Hits (of 30)</label>
+              <input id="chip_towel" type="number" min="0" max="30" />
+            </div>
+            <div>
+              <label>Up & Down Makes (of 9)</label>
+              <input id="chip_updown" type="number" min="0" max="9" />
+            </div>
+          </div>
+          <div style="margin-top:8px">
+            <label>Technical Reps Notes</label>
+            <input id="chip_notes" type="text" placeholder="bump&run / mid pitch…" />
+          </div>
+        </div>
+
+        <div class="card">
+          <h3>Range / TrackMan</h3>
+          <div class="row">
+            <div>
+              <label>Wedge 1 (yd) & Avg Carry</label>
+              <div class="row"><input id="wed1_y" type="number" placeholder="50"/><input id="wed1_c" type="number" placeholder="carry"/></div>
+            </div>
+            <div>
+              <label>Wedge 2 (yd) & Avg Carry</label>
+              <div class="row"><input id="wed2_y" type="number" placeholder="75"/><input id="wed2_c" type="number" placeholder="carry"/></div>
+            </div>
+          </div>
+          <div class="row" style="margin-top:8px">
+            <div>
+              <label>Wedge 3 (yd) & Avg Carry</label>
+              <div class="row"><input id="wed3_y" type="number" placeholder="100"/><input id="wed3_c" type="number" placeholder="carry"/></div>
+            </div>
+            <div>
+              <label>Virtual 9 GIR (0–9)</label>
+              <input id="rng_gir" type="number" min="0" max="9" />
+            </div>
+          </div>
+          <div class="row" style="margin-top:8px">
+            <div>
+              <label>Narrow Target Hits – 7i (of 10)</label>
+              <input id="rng_iron" type="number" min="0" max="10" />
+            </div>
+            <div>
+              <label>Narrow Target Hits – Driver (of 10)</label>
+              <input id="rng_drv" type="number" min="0" max="10" />
+            </div>
+          </div>
+          <div style="margin-top:8px">
+            <label>Notes</label>
+            <input id="rng_notes" type="text" placeholder="shape, start lines, tempo…" />
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3>Session Notes</h3>
+        <textarea id="notes" rows="4" placeholder="What went well? What to adjust next time?"></textarea>
+        <div style="display:flex;gap:8px;margin-top:10px">
+          <button id="save" class="btn">Save Session</button>
+          <button id="clearForm" class="btn ghost">Clear Form</button>
         </div>
       </div>
     </section>
 
-    <!-- PRACTICE (placeholder for v0) -->
-    <section id="practice" class="grid hide">
-      <div class="card">
-        <h2>Practice</h2>
-        <p class="small">This is the practice area. Next step: add a simple entry flow (%, Points, Other) without requiring plans.</p>
-        <div class="row">
-          <button class="btn" id="newPracticeBtn">Start practice (v0)</button>
-          <button class="btn ghost" id="backHomeBtn">Back to Home</button>
+    <!-- HISTORY TAB -->
+    <section id="history" class="grid hide">
+      <div class="grid cards">
+        <div class="card">
+          <h2>Averages (Last 10)</h2>
+          <div class="grid" style="grid-template-columns:repeat(2,minmax(0,1fr));gap:12px">
+            <div class="stat"><span class="small">Gate Drill</span><b id="avg_gate">–</b><span class="small">/20</span></div>
+            <div class="stat"><span class="small">Circle 3ft</span><b id="avg_circle">–</b><span class="small">/10</span></div>
+            <div class="stat"><span class="small">Lag Points</span><b id="avg_lag">–</b><span class="small">/15</span></div>
+            <div class="stat"><span class="small">Towel Hits</span><b id="avg_towel">–</b><span class="small">/30</span></div>
+            <div class="stat"><span class="small">Up & Downs</span><b id="avg_updown">–</b><span class="small">/9</span></div>
+            <div class="stat"><span class="small">Virtual 9 GIR</span><b id="avg_gir">–</b><span class="small">/9</span></div>
+            <div class="stat"><span class="small">7i Hits</span><b id="avg_iron">–</b><span class="small">/10</span></div>
+            <div class="stat"><span class="small">Driver Hits</span><b id="avg_drv">–</b><span class="small">/10</span></div>
+          </div>
+        </div>
+
+        <div class="card">
+          <h2>Data</h2>
+          <div style="display:flex;gap:8px;margin-bottom:8px">
+            <button id="exportBtn" class="btn">Export JSON</button>
+            <label class="btn ghost" for="importFile" style="cursor:pointer">Import JSON<input id="importFile" type="file" accept="application/json" style="display:none"/></label>
+            <button id="resetAll" class="btn warn">Reset All Data</button>
+          </div>
+          <div class="small">Tip: export occasionally so you can keep a backup or move devices.</div>
         </div>
       </div>
-    </section>
 
-    <!-- STATS (placeholder for v0) -->
-    <section id="stats" class="grid hide">
       <div class="card">
-        <h2>Stats</h2>
-        <p class="small">We’ll show summaries once you’ve logged sessions. For now, there’s nothing to compute.</p>
-        <div id="statsEmpty" class="small">No sessions yet.</div>
-        <div class="row" style="margin-top:8px">
-          <button class="btn ghost" id="backFromStatsBtn">Back to Home</button>
-        </div>
-      </div>
-    </section>
-
-    <!-- SETTINGS -->
-    <section id="settings" class="grid hide">
-      <div class="card">
-        <h2>Settings</h2>
-        <div class="row">
-          <button class="btn" id="exportBtn">Export JSON</button>
-          <button class="btn warn" id="resetBtn">Reset All</button>
-          <button class="btn ghost" id="backFromSettingsBtn">Back to Home</button>
-        </div>
-        <p class="small">Export creates a backup file of your sessions. Reset wipes the local database.</p>
+        <h2>Sessions</h2>
+        <table id="tbl">
+          <thead>
+            <tr>
+              <th>Date</th>
+              <th>Put: Gate/Circle/Lag</th>
+              <th>Chip: Towel/Up&Down</th>
+              <th>Range: GIR 7i/Drv</th>
+              <th>Notes</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
       </div>
     </section>
   </main>
 
-  <footer class="wrap small">Data is stored locally in IndexedDB (Dexie). No defaults are preloaded.</footer>
+  <footer class="wrap small">100% client-side. Data lives in your browser via localStorage. Works great on iPhone via GitHub Pages.</footer>
 
   <script>
-    // ---------- tiny DOM helpers ----------
-    const $  = (q)=>document.querySelector(q);
-    const $$ = (q)=>Array.from(document.querySelectorAll(q));
-    const el = (tag, attrs={}, html='')=>{ const x=document.createElement(tag); Object.entries(attrs).forEach(([k,v])=>x.setAttribute(k,v)); if(html!==undefined) x.innerHTML=html; return x; };
-
-    // ---------- Dexie setup (IndexedDB) ----------
-    const dx = new Dexie('golf_stats_v1');
-    dx.version(1).stores({
-      sessions: 'id, date' // primary key: id, index on date
-      // future: drills: 'id, name, cat', plans: 'id, name'
-    });
-
-    // ---------- storage API (async) ----------
-    const db = {
-      async addSession(row){ await dx.table('sessions').add(row); return row; },
-      async listSessionsAsc(){ return await dx.table('sessions').orderBy('date').toArray(); },
-      async listSessionsDesc(){ return await dx.table('sessions').orderBy('date').reverse().toArray(); },
-      async count(){ return await dx.table('sessions').count(); },
-      async clear(){ await dx.table('sessions').clear(); },
-      async export(){ const all = await dx.table('sessions').toArray(); return { sessions: all }; },
-      async stats(){
-        const count = await dx.table('sessions').count();
-        if(!count) return { count:0, first:null, last:null, recent:[] };
-        const firstRow = await dx.table('sessions').orderBy('date').first();
-        const lastRow  = await dx.table('sessions').orderBy('date').last();
-        const recent   = await dx.table('sessions').orderBy('date').reverse().limit(3).toArray();
-        return { count, first:firstRow.date, last:lastRow.date, recent };
-      }
+    const $ = (q)=>document.querySelector(q);
+    const store = {
+      get key(){ return 'fg_practice_sessions_v1'; },
+      get planKey(){ return 'fg_practice_plan_v1'; },
+      load(){ return JSON.parse(localStorage.getItem(this.key)||'[]'); },
+      save(list){ localStorage.setItem(this.key, JSON.stringify(list)); },
+      loadPlan(){ return localStorage.getItem(this.planKey); },
+      savePlan(txt){ localStorage.setItem(this.planKey, txt); }
     };
 
-    // ---------- simple router ----------
-    const routes = ['home','practice','stats','settings'];
-    function go(route){
-      if(!routes.includes(route)) route = 'home';
-      routes.forEach(r=> document.getElementById(r).classList.toggle('hide', r!==route));
-      document.title = (route==='home' ? 'Golf Stats (Dexie v0)' : `Golf Stats – ${route[0].toUpperCase()+route.slice(1)}`);
-      if(route==='home') renderHome();
-      if(route==='practice') renderPractice();
-      if(route==='stats') renderStats();
-      if(route==='settings') renderSettings();
-    }
-    window.addEventListener('hashchange', ()=> go(location.hash.replace('#','')||'home'));
-    go(location.hash.replace('#','')||'home');
+    // Tabs
+    document.querySelectorAll('.tab').forEach(btn=>btn.addEventListener('click',()=>{
+      document.querySelectorAll('.tab').forEach(b=>b.classList.remove('active'));
+      btn.classList.add('active');
+      const tab = btn.dataset.tab;
+      document.querySelectorAll('main section').forEach(s=>s.classList.add('hide'));
+      document.getElementById(tab).classList.remove('hide');
+      if(tab==='history') render();
+    }));
 
-    // ---------- HOME ----------
-    async function renderHome(){
-      const s = await db.stats();
-      $('#k_total').textContent = s.count;
-      $('#k_first').textContent = s.first || '–';
-      $('#k_last').textContent  = s.last  || '–';
-      const box = $('#recentList');
-      if(!s.count){ box.textContent = 'No sessions yet. Your last three practices will appear here.'; return; }
-      box.innerHTML = '';
-      s.recent.forEach(row=> box.appendChild(el('div',{}, `<span class="pill">${row.date}</span> – ${row.note||'Practice'}`)));
-    }
+    // Plan template
+    const template = `Putting — 30min\n• Gate Drill: 20 putts within 6ft (score /20)\n• Circle Drill: 10 balls at 3ft (make all /10)\n• Lag Putting: 5 balls @ 20/30/40ft — 1pt inside 3ft (/15)\n\nChipping — 30min\n• Technical Reps: pick 2 shots (high/low), 10 balls each\n• Landing Spot: 30 balls; towel 3–5ft on green (score hits /30)\n• Pressure: 9 different chips → putt out (Up&Down % /9)\n\nRange — 30min\n• Wedge Work: 3 stock distances; 5 balls each (record avg carry)\n• Start Lines: 10 irons, 10 drivers (narrow target hits)\n• Virtual 9: random targets; full pre-shot routine (GIR /9)`;
 
-    // ---------- PRACTICE (v0 placeholder) ----------
-    function renderPractice(){
-      $('#newPracticeBtn').onclick = async ()=>{
-        const today = new Date().toISOString().slice(0,10);
-        await db.addSession({ id: crypto.randomUUID(), date: today, note: '' });
-        alert('Practice started (placeholder). We will build the full entry flow next.');
-        location.hash = '#home';
+    const planText = $('#planText');
+    function loadPlanUI(){ planText.value = store.loadPlan() || template; }
+    loadPlanUI();
+
+    planText.addEventListener('input', ()=> store.savePlan(planText.value));
+    $('#resetPlan').onclick = ()=>{ if(confirm('Reset plan text to template?')) { planText.value = template; store.savePlan(planText.value); }};
+    $('#copyPlan').onclick = async ()=>{ try{ await navigator.clipboard.writeText(planText.value); alert('Plan copied to clipboard.'); }catch(e){ alert('Could not copy.'); }};
+
+    // Form helpers
+    const today = new Date();
+    $('#date').valueAsDate = today;
+
+    $('#clearForm').onclick = ()=>{
+      document.querySelectorAll('#log input, #log textarea').forEach(el=>{ if(el.type==='date') return; el.value=''; });
+    };
+
+    $('#save').onclick = ()=>{
+      const s = {
+        id: crypto.randomUUID(),
+        date: $('#date').value || new Date().toISOString().slice(0,10),
+        minutes: +($('#minutes').value||0),
+        put: {
+          gate:+($('#put_gate').value||0),
+          circle:+($('#put_circle').value||0),
+          lag:+($('#put_lag').value||0),
+          notes: $('#put_notes').value||''
+        },
+        chip: {
+          towel:+($('#chip_towel').value||0),
+          updown:+($('#chip_updown').value||0),
+          notes: $('#chip_notes').value||''
+        },
+        rng: {
+          wedges:[
+            {y:+($('#wed1_y').value||0), c:+($('#wed1_c').value||0)},
+            {y:+($('#wed2_y').value||0), c:+($('#wed2_c').value||0)},
+            {y:+($('#wed3_y').value||0), c:+($('#wed3_c').value||0)}
+          ],
+          gir:+($('#rng_gir').value||0),
+          iron:+($('#rng_iron').value||0),
+          drv:+($('#rng_drv').value||0),
+          notes: $('#rng_notes').value||''
+        },
+        notes: $('#notes').value||''
       };
-      $('#backHomeBtn').onclick = ()=> location.hash = '#home';
+
+      const list = store.load();
+      list.unshift(s);
+      store.save(list);
+      alert('Session saved.');
+      render();
+    };
+
+    // History + stats
+    function avg(arr, path, take=10){
+      const slice = arr.slice(0,take);
+      const nums = slice.map(x=> path(x)).filter(n=> typeof n==='number' && !isNaN(n));
+      if(!nums.length) return null; return (nums.reduce((a,b)=>a+b,0)/nums.length).toFixed(1);
     }
 
-    // ---------- STATS (v0 placeholder) ----------
-    async function renderStats(){
-      const n = await db.count();
-      $('#statsEmpty').textContent = n ? `${n} session(s) saved. Detailed stats coming next.` : 'No sessions yet.';
-      const back = document.getElementById('backFromStatsBtn');
-      if (back) back.onclick = ()=> location.hash = '#home';
+    function render(){
+      const list = store.load();
+      $('#avg_gate').textContent = avg(list, s=>s.put.gate)??'–';
+      $('#avg_circle').textContent = avg(list, s=>s.put.circle)??'–';
+      $('#avg_lag').textContent = avg(list, s=>s.put.lag)??'–';
+      $('#avg_towel').textContent = avg(list, s=>s.chip.towel)??'–';
+      $('#avg_updown').textContent = avg(list, s=>s.chip.updown)??'–';
+      $('#avg_gir').textContent = avg(list, s=>s.rng.gir)??'–';
+      $('#avg_iron').textContent = avg(list, s=>s.rng.iron)??'–';
+      $('#avg_drv').textContent = avg(list, s=>s.rng.drv)??'–';
+
+      const tbody = document.querySelector('#tbl tbody');
+      tbody.innerHTML = '';
+      list.forEach(s=>{
+        const tr = document.createElement('tr');
+        const wedgeTxt = s.rng.wedges.filter(w=>w.y>0&&w.c>0).map(w=>`${w.y}:${w.c}`).join(' | ');
+        tr.innerHTML = `
+          <td><span class="pill">${s.date}</span></td>
+          <td>${s.put.gate}/${20} • ${s.put.circle}/${10} • ${s.put.lag}/${15}</td>
+          <td>${s.chip.towel}/${30} • ${s.chip.updown}/${9}</td>
+          <td>${s.rng.gir}/${9} • 7i ${s.rng.iron}/${10} • Dr ${s.rng.drv}/${10}</td>
+          <td class="small">${(s.notes||'').slice(0,60)}</td>
+          <td><button class="btn ghost" data-del="${s.id}">Delete</button></td>`;
+        tbody.appendChild(tr);
+      });
+
+      // delete
+      tbody.querySelectorAll('button[data-del]').forEach(b=>b.onclick=()=>{
+        const id = b.dataset.del;
+        const list = store.load().filter(x=>x.id!==id);
+        store.save(list); render();
+      });
     }
 
-    // ---------- SETTINGS ----------
-    function renderSettings(){
-      $('#exportBtn').onclick = async ()=>{
-        const payload = await db.export();
-        const blob = new Blob([JSON.stringify(payload,null,2)], { type:'application/json' });
-        const url = URL.createObjectURL(blob);
-        const a = el('a',{ href:url, download:`golf_stats_backup.json` });
-        document.body.appendChild(a); a.click(); a.remove();
-        setTimeout(()=> URL.revokeObjectURL(url), 5000);
+    render();
+
+    // Export / Import / Reset
+    $('#exportBtn').onclick = ()=>{
+      const data = {plan: store.loadPlan()||template, sessions: store.load()};
+      const blob = new Blob([JSON.stringify(data,null,2)], {type:'application/json'});
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = 'golf_practice_backup.json';
+      a.click();
+    };
+
+    $('#importFile').addEventListener('change', (e)=>{
+      const file = e.target.files[0]; if(!file) return;
+      const reader = new FileReader();
+      reader.onload = ()=>{
+        try{
+          const data = JSON.parse(reader.result);
+          if(data.plan) store.savePlan(data.plan);
+          if(Array.isArray(data.sessions)) store.save(data.sessions);
+          loadPlanUI(); render();
+          alert('Import complete.');
+        }catch(err){ alert('Import failed. Invalid file.'); }
       };
-      $('#resetBtn').onclick = async ()=>{
-        if(!confirm('This will delete ALL local data. Continue?')) return;
-        await db.clear();
-        alert('Local database cleared.');
-        location.hash = '#home';
-        renderHome();
-      };
-      const back = document.getElementById('backFromSettingsBtn');
-      if (back) back.onclick = ()=> location.hash = '#home';
-    }
+      reader.readAsText(file);
+    });
 
-    // NEW: bind header settings button
-    const topSettings = document.getElementById('topSettingsBtn');
-    if (topSettings) topSettings.onclick = () => { location.hash = '#settings'; };
+    $('#resetAll').onclick = ()=>{
+      if(confirm('This will delete ALL saved sessions and plan text on this device. Proceed?')){
+        localStorage.removeItem(store.key);
+        localStorage.removeItem(store.planKey);
+        loadPlanUI(); render();
+      }
+    };
   </script>
 </body>
 </html>
