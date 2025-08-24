@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Golf Practice Tracker</title>
+  <style>
+    :root {
+      --bg: #0f1115;
+      --card: #171a22;
+      --text: #e9eef5;
+      --subtle: #aeb6c2;
+      --accent: #5aa7ff;
+      --muted: #8691a3;
+      --border: #222734;
+    }
+    * { box-sizing: border-box; }
+    html, body {
+      margin: 0; padding: 0;
+      background: var(--bg); color: var(--text);
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
+    }
+    .app-header, .app-footer {
+      padding: 12px 16px;
+      border-bottom: 1px solid var(--border);
+      background: #0d0f14;
+    }
+    .app-footer {
+      border-top: 1px solid var(--border);
+      border-bottom: none;
+      text-align: center;
+    }
+    h1, h2, h3 { margin: 0 0 8px; }
+    .top-nav {
+      margin-top: 8px; display: flex; gap: 8px; flex-wrap: wrap;
+    }
+    button {
+      border: 1px solid var(--border); background: #141823; color: var(--text);
+      padding: 8px 12px; border-radius: 8px; cursor: pointer;
+    }
+    button.primary { background: var(--accent); color: #0b1220; border-color: transparent; font-weight: 600; }
+    button:disabled { opacity: 0.6; cursor: not-allowed; }
+    main.view { display: none; padding: 16px; }
+    .view--active { display: block; }
+    .card {
+      background: var(--card); border: 1px solid var(--border);
+      border-radius: 12px; padding: 16px; max-width: 820px; margin: 0 auto;
+    }
+    label { display: grid; gap: 6px; margin: 10px 0; }
+    input, select, textarea {
+      background: #0d111a; color: var(--text);
+      border: 1px solid var(--border); border-radius: 8px; padding: 10px;
+    }
+    details { margin: 14px 0; }
+    summary { cursor: pointer; }
+    .cta-row { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 12px; }
+    .row { display: flex; gap: 8px; flex-wrap: wrap; }
+    .list { list-style: none; padding: 0; margin: 0; }
+    .list li { border-bottom: 1px solid var(--border); padding: 10px 0; }
+    .list li:last-child { border-bottom: none; }
+    .tags { list-style: none; padding: 0; display: flex; gap: 8px; flex-wrap: wrap; }
+    .tags li {
+      background: #111520; border: 1px solid var(--border);
+      padding: 6px 10px; border-radius: 999px;
+    }
+    .tags li button { margin-left: 8px; padding: 2px 6px; border-radius: 999px; }
+    .muted { color: var(--muted); }
+    .metric-grid {
+      display: grid; gap: 10px;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      margin-top: 8px;
+    }
+    #metric-hint { color: var(--subtle); }
+  </style>
+</head>
+<body>
+  <header class="app-header">
+    <h1>Golf Practice Tracker</h1>
+    <nav class="top-nav">
+      <button data-nav="home">Home</button>
+      <button data-nav="practice">Start Practice</button>
+      <button data-nav="stats">Stats</button>
+      <button data-nav="settings">Settings</button>
+    </nav>
+  </header>
+
+  <!-- HOME -->
+  <main id="view-home" class="view view--active">
+    <section class="card">
+      <h2>Welcome</h2>
+      <p>Tap <strong>Start Practice</strong> to begin a session. No popups. No auto-start.</p>
+      <div class="cta-row">
+        <button class="primary" data-nav="practice">Start Practice</button>
+        <button data-nav="stats">View Stats</button>
+      </div>
+    </section>
+  </main>
+
+  <!-- PRACTICE -->
+  <main id="view-practice" class="view">
+    <section class="card">
+      <h2>New Practice Session</h2>
+      <form id="practice-form">
+        <label>Date<input type="date" id="p-date" required /></label>
+        <label>Drill / Activity<input type="text" id="p-drill" placeholder="e.g., Gate Drill, Wedges, Putting Course" required /></label>
+        <label>Primary Metric
+          <select id="p-primary" required>
+            <option value="points">Points Scored</option>
+            <option value="attempts">Attempts to Complete</option>
+            <option value="to_par">To Par</option>
+            <option value="none">None</option>
+          </select>
+        </label>
+        <details><summary>Optional Fields</summary>
+          <label>Distance (yd)<input type="number" id="p-distance" inputmode="numeric" /></label>
+          <label>Club<select id="p-club"></select></label>
+          <label>Notes<textarea id="p-notes" rows="3"></textarea></label>
+        </details>
+        <div id="metric-fields">
+          <small id="metric-hint"></small>
+          <div class="metric-grid">
+            <label data-metric="points">Points<input type="number" id="m-points" /></label>
+            <label data-metric="attempts">Attempts<input type="number" id="m-attempts" /></label>
+            <label data-metric="to_par">To Par<input type="text" id="m-to-par" /></label>
+          </div>
+        </div>
+        <div class="cta-row">
+          <button type="submit" class="primary">Save Session</button>
+          <button type="button" data-nav="home">Cancel</button>
+        </div>
+      </form>
+    </section>
+  </main>
+
+  <!-- STATS -->
+  <main id="view-stats" class="view">
+    <section class="card">
+      <h2>Stats</h2>
+      <div id="stats-empty" class="muted">No sessions yet.</div>
+      <ul id="stats-list" class="list"></ul>
+    </section>
+  </main>
+
+  <!-- SETTINGS -->
+  <main id="view-settings" class="view">
+    <section class="card">
+      <h2>Settings</h2>
+      <h3>Active Clubs</h3>
+      <form id="club-form" class="row">
+        <input type="text" id="club-input" placeholder="Add a club (e.g., PW, 7i, Driver)" />
+        <button type="submit">Add</button>
+      </form>
+      <ul id="club-list" class="tags"></ul>
+      <hr/>
+      <h3>Data</h3>
+      <div class="row">
+        <button id="export-btn">Export Data</button>
+        <button id="import-btn">Import Data</button>
+        <input type="file" id="import-file" accept="application/json" hidden />
+      </div>
+      <p class="muted">Storage uses localStorage for simplicity.</p>
+    </section>
+  </main>
+
+  <footer class="app-footer"><small>© 2025 Golf Practice Tracker</small></footer>
+
+  <script>
+    // ---- Storage helpers ----
+    const KEY_SESSIONS = "gpt_sessions_v1";
+    const KEY_CLUBS = "gpt_active_clubs_v1";
+    const storage = {
+      getSessions: () => JSON.parse(localStorage.getItem(KEY_SESSIONS) || "[]"),
+      setSessions: (list) => localStorage.setItem(KEY_SESSIONS, JSON.stringify(list)),
+      getClubs: () => JSON.parse(localStorage.getItem(KEY_CLUBS) || '["Putter","PW","7i","Driver"]'),
+      setClubs: (list) => localStorage.setItem(KEY_CLUBS, JSON.stringify(list)),
+    };
+
+    // ---- Router ----
+    const views = {
+      home: document.getElementById("view-home"),
+      practice: document.getElementById("view-practice"),
+      stats: document.getElementById("view-stats"),
+      settings: document.getElementById("view-settings"),
+    };
+    function showView(name) {
+      Object.values(views).forEach(v => v.classList.remove("view--active"));
+      views[name].classList.add("view--active");
+      if (name === "stats") renderStats();
+      if (name === "practice") initPracticeForm();
+    }
+    document.addEventListener("click", e => {
+      const btn = e.target.closest("[data-nav]");
+      if (btn) { e.preventDefault(); showView(btn.dataset.nav); }
+    });
+
+    // ---- Practice form ----
+    const form = document.getElementById("practice-form");
+    const dateInput = document.getElementById("p-date");
+    const drillInput = document.getElementById("p-drill");
+    const primarySelect = document.getElementById("p-primary");
+    const distanceInput = document.getElementById("p-distance");
+    const clubSelect = document.getElementById("p-club");
+    const notesInput = document.getElementById("p-notes");
+    const metricHint = document.getElementById("metric-hint");
+    const mPoints = document.getElementById("m-points");
+    const mAttempts = document.getElementById("m-attempts");
+    const mToPar = document.getElementById("m-to-par");
+
+    function syncMetricFields() {
+      const val = primarySelect.value;
+      metricHint.textContent = ({
+        points: "Enter your total points.",
+        attempts: "Enter number of attempts.",
+        to_par: "Enter score relative to par (e.g., -2, 0, +1).",
+        none: "No primary metric selected."
+      })[val];
+      document.querySelectorAll("[data-metric]").forEach(el => {
+        el.style.display = (el.dataset.metric === val) ? "block" : "none";
+      });
+    }
+    primarySelect.addEventListener("change", syncMetricFields);
+
+    function initPracticeForm() {
+      if (!dateInput.value) dateInput.value = new Date().toISOString().slice(0,10);
+      renderClubOptions(); syncMetricFields();
+    }
+    function renderClubOptions() {
+      const clubs = storage.getClubs();
+      clubSelect.innerHTML = '<option value="">(none)</option>' + clubs.map(c=>`<option>${c}</option>`).join("");
+    }
+    form.addEventListener("submit", e => {
+      e.preventDefault();
+      const s = {
+        id: crypto.randomUUID(),
+        date: dateInput.value,
+        drill: drillInput.value.trim(),
+        primary: primarySelect.value,
+        distance: distanceInput.value ? Number(distanceInput.value) : null,
+        club: clubSelect.value || null,
+        notes: notesInput.value.trim() || null,
+        metrics: {
+          points: primarySelect.value==="points"?Number(mPoints.value||0):null,
+          attempts: primarySelect.value==="attempts"?Number(mAttempts.value||0):null,
+          to_par: primarySelect.value==="to_par"?mToPar.value:null,
+        },
+        created_at: new Date().toISOString()
+      };
+      if (!s.drill) { alert("Enter a drill."); return; }
+      const list = storage.getSessions(); list.push(s); storage.setSessions(list);
+      drillInput.value = mPoints.value = mAttempts.value = mToPar.value = "";
+      distanceInput.value = clubSelect.value = notesInput.value = "";
+      alert("Session saved!"); showView("stats");
+    });
+
+    // ---- Stats ----
+    function renderStats() {
+      const listEl = document.getElementById("stats-list");
+      const emptyEl = document.getElementById("stats-empty");
+      const list = storage.getSessions().sort((a,b)=>b.created_at.localeCompare(a.created_at));
+      if (!list.length) { emptyEl.style.display="block"; listEl.innerHTML=""; return; }
+      emptyEl.style.display="none";
+      listEl.innerHTML = list.map(s=>{
+        const m = s.primary==="points"?`Points: ${s.metrics.points}`:
+                  s.primary==="attempts"?`Attempts: ${s.metrics.attempts}`:
+                  s.primary==="to_par"?`To Par: ${s.metrics.to_par}`:"No metric";
+        const extras=[s.distance?`Dist: ${s.distance}yd`:null, s.club?`Club: ${s.club}`:null].filter(Boolean).join(" · ");
+        return `<li><div><strong>${escapeHtml(s.drill)}</strong> — ${s.date}</div><div>${m}${extras?" · "+extras:""}</div>${s.notes?`<div class="muted">Notes: ${escapeHtml(s.notes)}</div>`:""}</li>`;
+      }).join("");
+    }
+    function escapeHtml(t){return t.replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]));}
+
+    // ---- Clubs ----
+    const clubForm=document.getElementById("club-form"),clubInput=document.getElementById("club-input"),clubList=document.getElementById("club-list");
+    function renderClubTags() {
+      const clubs=storage.getClubs();
+      clubList.innerHTML=clubs.map((c,i)=>`<li>${escapeHtml(c)} <button data-del-club="${i}">✕</button></li>`).join("");
+      renderClubOptions();
+    }
+    clubForm.addEventListener("submit",e=>{
+      e.preventDefault();
+      const v=clubInput.value.trim(); if(!v) return;
+      const clubs=storage.getClubs(); if(!clubs.includes(v)){clubs.push(v); storage.setClubs(clubs); renderClubTags();}
+      clubInput.value="";
+    });
+    clubList.addEventListener("click",e=>{
+      const btn=e.target.closest("[data-del-club]"); if(!btn)return;
+      const idx=+btn.dataset.delClub; const clubs=storage.getClubs(); clubs.splice(idx,1); storage.setClubs(clubs); renderClubTags();
+    });
+
+    // ---- Import/Export ----
+    const exportBtn=document.getElementById("export-btn"),importBtn=document.getElementById("import-btn"),importFile=document.getElementById("import-file");
+    exportBtn.addEventListener("click",()=>{
+      const data={sessions:storage.getSessions(),clubs:storage.getClubs(),exported_at:new Date().toISOString()};
+      const blob=new Blob([JSON.stringify(data,null,2)],{type:"application/json"});
+      const url=URL.createObjectURL(blob); const a=document.createElement("a"); a.href=url; a.download="golf-practice-tracker-export.json"; a.click(); URL.revokeObjectURL(url);
+    });
+    importBtn.addEventListener("click",()=>importFile.click());
+    importFile.addEventListener("change",async e=>{
+      const file=e.target.files?.[0]; if(!file)return;
+      try{const text=await file.text(); const d=JSON.parse(text);
+        if(Array.isArray(d.sessions))storage.setSessions(d.sessions);
+        if(Array.isArray(d.clubs))storage.setClubs(d.clubs);
+        alert("Import complete."); renderClubTags(); renderStats();
+      }catch(err){alert("Import failed: "+err.message);}
+      finally{importFile.value="";}
+    });
+
+    // ---- Init ----
+    (function boot(){renderClubTags(); showView("home");})();
+  </script>
+</body>
+</html>
