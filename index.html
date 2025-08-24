@@ -3,39 +3,38 @@
 <head>
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1"/>
-<title>Golf Tracker — Auto-Build Practices (Lite)</title>
+<title>Golf Tracker — v4 (Attempts + Summaries)</title>
 <style>
-:root{
-  --bg:#0b0c10;--card:#14161b;--surf:#191c22;--txt:#e7eaf0;--mut:#a9b0bd;
-  --acc:#76e4f7;--ok:#7cf29a;--bad:#ff6b6b;--b:1px solid rgba(255,255,255,.08);
-}
-*{box-sizing:border-box} body{margin:0;background:var(--bg);color:var(--txt);
-  font:400 16px/1.4 system-ui,-apple-system,Segoe UI,Roboto,Arial}
-header{position:sticky;top:0;z-index:10;background:#191c22cc;backdrop-filter:blur(8px);
-  border-bottom:var(--b);padding:10px 16px}
-main{padding:14px 14px 90px}
-h3{margin:0 0 8px;font-size:1.05rem}
-.card{background:var(--card);border:var(--b);border-radius:12px;padding:12px;box-shadow:0 8px 24px #0006;margin:0 0 10px}
-.mut{color:var(--mut)} .row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
-.btn{appearance:none;border:var(--b);border-radius:10px;padding:10px 12px;background:var(--surf);color:var(--txt);font-weight:600;cursor:pointer}
-.primary{background:linear-gradient(180deg,var(--acc),#36b8cf);color:#001b22}
-.ok{background:linear-gradient(180deg,var(--ok),#32c16b);color:#021b0e}
-.bad{background:linear-gradient(180deg,var(--bad),#e24a4a);color:#2a0404}
-.ghost{background:transparent;border:1px dashed rgba(255,255,255,.25)}
-.list{display:grid;gap:8px}
-.item{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:10px;border-radius:10px;background:var(--surf);border:var(--b)}
-.pill{padding:4px 8px;border-radius:999px;background:#0f1217;border:var(--b);font-size:.8rem;color:var(--mut)}
-.kbd{font:600 .82rem ui-monospace,SFMono-Regular,Menlo,monospace;background:#0e1116;padding:2px 6px;border-radius:6px;border:var(--b)}
-nav{position:fixed;left:0;right:0;bottom:0;height:64px;background:#191c22f2;backdrop-filter:blur(8px);border-top:var(--b);
-  display:flex;align-items:center;justify-content:space-around}
-.tab{display:flex;flex-direction:column;align-items:center;font-size:.8rem;color:var(--mut);gap:2px}
-.tab.active{color:var(--txt)}
-.sheet{position:fixed;left:0;right:0;bottom:-100%;background:var(--card);border:var(--b);
-  border-top-left-radius:16px;border-top-right-radius:16px;box-shadow:0 -12px 32px #0008;z-index:20;transition:bottom .25s ease;padding:12px}
-.sheet.open{bottom:0} .hdl{width:42px;height:5px;border-radius:999px;background:#2a2f38;margin:6px auto 12px}
-input,select,textarea{width:100%;padding:10px 12px;border-radius:10px;border:var(--b);background:#0f1319;color:var(--txt)}
-textarea{min-height:80px;resize:vertical}
-@media(min-width:900px){main{max-width:960px;margin:0 auto}}
+  :root{
+    --bg:#0b0c10; --card:#14161b; --surf:#191c22; --txt:#e7eaf0; --mut:#a9b0bd;
+    --acc:#76e4f7; --ok:#7cf29a; --bad:#ff6b6b; --b:1px solid rgba(255,255,255,.08);
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--txt);font:400 16px/1.4 system-ui,-apple-system,Segoe UI,Roboto,Inter,Arial}
+  header{position:sticky;top:0;z-index:10;background:#191c22cc;backdrop-filter:blur(8px);border-bottom:var(--b);padding:10px 16px}
+  main{padding:14px 14px 90px}
+  h3{margin:0 0 8px;font-size:1.05rem}
+  .card{background:var(--card);border:var(--b);border-radius:12px;padding:12px;box-shadow:0 8px 24px #0006;margin:0 0 10px}
+  .mut{color:var(--mut)} .row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+  .btn{appearance:none;border:var(--b);border-radius:10px;padding:10px 12px;background:var(--surf);color:var(--txt);font-weight:600;cursor:pointer}
+  .primary{background:linear-gradient(180deg,var(--acc),#36b8cf);color:#001b22}
+  .ok{background:linear-gradient(180deg,var(--ok),#32c16b);color:#021b0e}
+  .bad{background:linear-gradient(180deg,var(--bad),#e24a4a);color:#2a0404}
+  .ghost{background:transparent;border:1px dashed rgba(255,255,255,.25)}
+  .list{display:grid;gap:8px}
+  .item{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:10px;border-radius:10px;background:var(--surf);border:var(--b)}
+  .pill{padding:4px 8px;border-radius:999px;background:#0f1217;border:var(--b);font-size:.8rem;color:var(--mut)}
+  .kbd{font:600 .82rem ui-monospace,SFMono-Regular,Menlo,monospace;background:#0e1116;padding:2px 6px;border-radius:6px;border:var(--b)}
+  nav{position:fixed;left:0;right:0;bottom:0;height:64px;background:#191c22f2;backdrop-filter:blur(8px);border-top:var(--b);
+    display:flex;align-items:center;justify-content:space-around}
+  .tab{display:flex;flex-direction:column;align-items:center;font-size:.8rem;color:var(--mut);gap:2px}
+  .tab.active{color:var(--txt)}
+  .sheet{position:fixed;left:0;right:0;bottom:-100%;background:var(--card);border:var(--b);
+    border-top-left-radius:16px;border-top-right-radius:16px;box-shadow:0 -12px 32px #0008;z-index:20;transition:bottom .25s ease;padding:12px}
+  .sheet.open{bottom:0} .hdl{width:42px;height:5px;border-radius:999px;background:#2a2f38;margin:6px auto 12px}
+  input,select,textarea{width:100%;padding:10px 12px;border-radius:10px;border:var(--b);background:#0f1319;color:var(--txt)}
+  textarea{min-height:80px;resize:vertical}
+  @media(min-width:900px){main{max-width:960px;margin:0 auto}}
 </style>
 </head>
 <body>
@@ -54,10 +53,11 @@ textarea{min-height:80px;resize:vertical}
   <section id="pg-home">
     <div class="card">
       <h3>Hello 👋</h3>
-      <div class="mut">Log drills as you go. Each saved session becomes a “practice” automatically.</div>
+      <div class="mut">Log drills as you go. Each saved session becomes a “practice” automatically. (v4 schema: attempts + summaries)</div>
       <div class="row" style="margin-top:8px">
         <button class="btn primary" onclick="startDraft()">Start Practice</button>
         <button class="btn" onclick="openSheet('quick'); buildQuickDrillPicker()">Quick Log Drill</button>
+        <button class="btn ghost" onclick="hardReset()">Reset Data</button>
       </div>
     </div>
 
@@ -189,71 +189,100 @@ textarea{min-height:80px;resize:vertical}
 </div>
 
 <script>
-/* ---------- Library ---------- */
-const LIB = {
-  putting:[
-    {id:'put_gate', name:'Gate Drill', type:'points', info:'Make as many as you can out of 24.'},
-    {id:'put_lag', name:'Lag Putting', type:'percent', info:'Into 3ft circle; track makes.'},
-    {id:'put_course', name:'Putting Course', type:'score_to_par', info:'Record net to par.'}
-  ],
-  chipping:[
-    {id:'chip_ladder', name:'Chipping Ladder', type:'points', info:'Vary distance; score ladder.'},
-    {id:'chip_updown', name:'Up & Down', type:'percent', info:'Get up & down rate.'}
-  ],
-  range:[
-    {id:'rng_7i_acc', name:'7-iron Accuracy', type:'percent', info:'Target hits / attempts.'},
-    {id:'rng_driver_fir', name:'Driver FIR', type:'percent', info:'Fairways hit / attempts.'},
-    {id:'rng_carry', name:'Carry Average', type:'other', info:'Enter carry as needed.'}
-  ],
-  course:[
-    {id:'crs_3holes', name:'Play 3 Holes', type:'score_to_par', info:'Record total net to par.'},
-    {id:'crs_9holes', name:'Play 9 Holes', type:'score_to_par', info:'Record total net to par.'}
-  ]
-};
-const SECS = ['putting','chipping','range','course'];
-const allDrills = ()=> SECS.flatMap(s=>LIB[s].map(d=>({...d,section:s})));
-const findDrill = id => allDrills().find(d=>d.id===id);
+/* =====================  DRILL DEFINITIONS (v4)  ===================== */
+const DRILLS = [
+  {
+    id:"put_gate", name:"Gate Drill", section:"putting", tags:["precision","startline"],
+    metrics:[ {key:"points",kind:"sum",display:"Points"} ],
+    attemptSchema:[ {key:"points",type:"number"} ],
+    defaults:{ gate_width_in:8, ball_count:24 }
+  },
+  {
+    id:"put_lag", name:"Lag Putting", section:"putting", tags:["speed","circle"],
+    metrics:[
+      {key:"makes",kind:"count",display:"Makes"},
+      {key:"attempts",kind:"count",display:"Attempts"},
+      {key:"accuracy",kind:"ratio",numerator:"makes",denominator:"attempts",display:"Accuracy",format:"percent0"}
+    ],
+    attemptSchema:[
+      {key:"distance_ft",type:"number"},
+      {key:"result",type:"enum",values:["make","miss"]},
+      {key:"miss_side",type:"enum",values:["short","long","left","right","n/a"]}
+    ],
+    defaults:{ target_circle_ft:3, ball_count:20, distance_ft:30 }
+  },
+  {
+    id:"rng_7i_acc", name:"7-iron Accuracy", section:"range", tags:["iron","target"],
+    metrics:[
+      {key:"hits",kind:"count",display:"Hits"},
+      {key:"attempts",kind:"count",display:"Attempts"},
+      {key:"fg",kind:"ratio",numerator:"hits",denominator:"attempts",display:"FG%",format:"percent0"}
+    ],
+    attemptSchema:[ {key:"hit",type:"bool"} ],
+    defaults:{ target_yards:165, club:"7i" }
+  },
+  {
+    id:"crs_3holes", name:"Play 3 Holes", section:"course", tags:["scoring"],
+    metrics:[ {key:"toPar",kind:"sum",display:"ToPar"} ],
+    attemptSchema:[ {key:"hole",type:"number"},{key:"par",type:"number"},{key:"strokes",type:"number"},{key:"toPar",type:"number"} ],
+    defaults:{ holes:3 }
+  },
+  {
+    id:"chip_updown", name:"Up & Down", section:"chipping", tags:["shortgame"],
+    metrics:[
+      {key:"saves",kind:"count",display:"Saves"},
+      {key:"attempts",kind:"count",display:"Attempts"},
+      {key:"rate",kind:"ratio",numerator:"saves",denominator:"attempts",display:"Save %",format:"percent0"}
+    ],
+    attemptSchema:[ {key:"save",type:"bool"} ],
+    defaults:{ lie:"fairway" }
+  }
+];
 
-/* ---------- State ---------- */
-const K = { practices:'gt_practices_v3lite' };
+const SECTIONS = ["putting","chipping","range","course"];
+const findDrill = id => DRILLS.find(d=>d.id===id);
+const drillsBySection = sec => DRILLS.filter(d=>sec==="all" ? true : d.section===sec);
+
+/* =====================  STATE  ===================== */
+const LS = { practices:"gt_v4_practices" };
 const S = {
-  route:'home',
-  session:{id:null,status:'idle',startedAt:null,elapsedMs:0,blocks:[]}, // blocks: {section,drillId,type,data:{points,attempts,makes,toPar,note}}
-  practices: JSON.parse(localStorage.getItem(K.practices)||'[]')
+  route:"home",
+  session:{ id:null,status:"idle",startedAt:null,elapsedMs:0,blocks:[] }, // blocks: BlockLog v4
+  practices: JSON.parse(localStorage.getItem(LS.practices)||"[]")
 };
-const el = id=>document.getElementById(id);
-const rid = ()=> 's_'+Math.random().toString(36).slice(2,9);
-const fmt = ms=>{const s=Math.floor(ms/1000),m=String(Math.floor(s/60)).padStart(2,'0'),ss=String(s%60).padStart(2,'0');return m+':'+ss;};
 
-/* ---------- Nav ---------- */
+const el = id=>document.getElementById(id);
+const rid = ()=>"s_"+Math.random().toString(36).slice(2,9);
+const fmt = ms=>{const s=Math.floor(ms/1000),m=String(Math.floor(s/60)).padStart(2,"0"),ss=String(s%60).padStart(2,"0");return m+":"+ss;};
+const cap = s => s ? s[0].toUpperCase()+s.slice(1):"";
+
+/* =====================  NAV + SHEETS  ===================== */
 function go(p){
   S.route=p;
-  ['home','log','stats','lib'].forEach(x=>{
-    el('pg-'+x).style.display = (x===p?'block':'none');
-    document.querySelector(`.tab[data-p="${x}"]`).classList.toggle('active',x===p);
+  ["home","log","stats","lib"].forEach(x=>{
+    el("pg-"+x).style.display = (x===p?"block":"none");
+    document.querySelector(`.tab[data-p="${x}"]`).classList.toggle("active",x===p);
   });
-  el('hdr').textContent = p[0].toUpperCase()+p.slice(1);
-  if(p==='home') renderHome();
-  if(p==='log') renderLog();
-  if(p==='stats') renderStats();
-  if(p==='lib') renderLib('all');
+  el("hdr").textContent = cap(p);
+  if(p==="home") renderHome();
+  if(p==="log") renderLog();
+  if(p==="stats") renderStats();
+  if(p==="lib") renderLib("all");
 }
+function openSheet(id){ el(id).classList.add("open"); }
+function closeSheet(id){ el(id).classList.remove("open"); }
 
-/* ---------- Sheets ---------- */
-function openSheet(id){ el(id).classList.add('open'); }
-function closeSheet(id){ el(id).classList.remove('open'); }
-
-/* ---------- Home ---------- */
+/* =====================  HOME  ===================== */
 function renderHome(){
-  const c = el('recent'); c.innerHTML='';
+  const c = el("recent"); c.innerHTML="";
   if(S.practices.length===0){
     c.innerHTML = `<div class="mut">No practices yet. Start one from Home.</div>`;
   }else{
     S.practices.slice().reverse().slice(0,8).forEach(p=>{
       const when = new Date(p.startedAt).toLocaleString();
-      const by = bySection(p.blocks);
-      const sum = Object.entries(by).map(([k,v])=>cap(k)+': '+v.blocks).join(' • ');
-      const row = document.createElement('div'); row.className='item';
+      const by = summarizeBySection(p.blocks);
+      const sum = Object.entries(by).map(([k,v])=>cap(k)+": "+v.count+" drills").join(" • ");
+      const row = document.createElement("div"); row.className="item";
       row.innerHTML = `<div>
         <div><b>Practice</b> <span class="mut">${when}</span></div>
         <div class="mut">${sum}</div>
@@ -265,219 +294,386 @@ function renderHome(){
       c.appendChild(row);
     });
   }
-  el('cnt30').textContent = S.practices.length;
+  el("cnt30").textContent = S.practices.length;
 }
 
-/* ---------- Log ---------- */
-let t=null;
+/* =====================  LOGGING  ===================== */
+let tick=null;
+function startDraft(){ go("log"); if(S.session.status==="idle"||S.session.status==="ended"){ S.session={id:rid(),status:"draft",startedAt:null,elapsedMs:0,blocks:[]}; renderLog(); } }
+function startSession(){ if(S.session.status==="draft"||S.session.status==="paused"){ S.session.status="active"; if(!S.session.startedAt) S.session.startedAt=Date.now();
+  if(tick) clearInterval(tick); tick=setInterval(()=>{ const now=Date.now(); const ms=(S.session.startedAt? now-S.session.startedAt:0)+(S.session.elapsedMs||0); el("elapsed").textContent=fmt(ms); },1000); renderLog(); } }
+function pauseSession(){ if(S.session.status==="active"){ S.session.status="paused"; S.session.elapsedMs=(Date.now()-S.session.startedAt)+(S.session.elapsedMs||0); S.session.startedAt=null; if(tick) clearInterval(tick); tick=null; renderLog(); } }
+function endSession(){
+  if(S.session.status==="idle") return;
+  if(S.session.status==="active"){ S.session.elapsedMs=(Date.now()-S.session.startedAt)+(S.session.elapsedMs||0); }
+  S.session.status="ended"; if(tick) clearInterval(tick); tick=null;
+  // finalize practice
+  const practice={ id:S.session.id, startedAt:S.session.startedAt||Date.now(), endedAt:Date.now(), elapsedMs:S.session.elapsedMs, blocks: JSON.parse(JSON.stringify(S.session.blocks)) };
+  S.practices.push(practice); localStorage.setItem(LS.practices, JSON.stringify(S.practices));
+  S.session={id:null,status:"idle",startedAt:null,elapsedMs:0,blocks:[]};
+  alert("Practice saved ✔︎"); go("home");
+}
+
 function renderLog(){
-  el('stPill').textContent = S.session.status.toUpperCase();
-  el('sessionPill').textContent = cap(S.session.status);
-  const on = ['draft','active','paused'].includes(S.session.status);
-  el('log-empty').style.display = on?'none':'block';
-  el('log-body').style.display = on?'block':'none';
-  el('btnStart').disabled = !(S.session.status==='draft'||S.session.status==='paused');
-  el('btnPause').disabled = !(S.session.status==='active');
-  el('btnEnd').disabled   = !(S.session.status==='active'||S.session.status==='paused');
-  el('blkCount').textContent = `${S.session.blocks.length} drills`;
-  el('blocks').innerHTML='';
+  el("stPill").textContent = S.session.status.toUpperCase();
+  el("sessionPill").textContent = cap(S.session.status);
+  const on = ["draft","active","paused"].includes(S.session.status);
+  el("log-empty").style.display = on?"none":"block";
+  el("log-body").style.display = on?"block":"none";
+  el("btnStart").disabled = !(S.session.status==="draft"||S.session.status==="paused");
+  el("btnPause").disabled = !(S.session.status==="active");
+  el("btnEnd").disabled   = !(S.session.status==="active"||S.session.status==="paused");
+  el("blkCount").textContent = `${S.session.blocks.length} drills`;
+
+  const host = el("blocks"); host.innerHTML="";
   S.session.blocks.forEach((b,i)=>{
     const d = findDrill(b.drillId);
-    const key = `b${i}`;
-    let ui='';
-    if(b.type==='points'){
-      ui = `<div class="row">
-        <button class="btn" onclick="mutBlk(${i},'points',1)">+1</button>
-        <button class="btn" onclick="mutBlk(${i},'points',3)">+3</button>
-        <button class="btn" onclick="mutBlk(${i},'points',-1)">-1</button>
-      </div><div>Total: <b id="${key}_pts">${b.data.points}</b></div>`;
-    }else if(b.type==='percent'){
-      const acc=b.data.attempts?Math.round(100*b.data.makes/b.data.attempts):0;
-      ui = `<div class="row">
-        <button class="btn ok" onclick="mutBlk(${i},'attempt',1)">Made</button>
-        <button class="btn bad" onclick="mutBlk(${i},'attempt',0)">Miss</button>
-      </div><div>Att: <b id="${key}_a">${b.data.attempts}</b> • Makes: <b id="${key}_m">${b.data.makes}</b> • Acc: <b id="${key}_acc">${acc}%</b></div>`;
-    }else if(b.type==='score_to_par'){
-      ui = `<div class="row">
-        <button class="btn" onclick="mutBlk(${i},'toPar',-1)">-1</button>
-        <input id="${key}_in" type="number" value="${b.data.toPar}" oninput="mutBlk(${i},'toParSet',this.value)" style="max-width:100px"/>
-        <button class="btn" onclick="mutBlk(${i},'toPar',1)">+1</button>
-      </div><div>ToPar: <b id="${key}_par">${b.data.toPar}</b></div>`;
-    }else{
-      ui = `<div class="mut">Free-form drill. Add notes.</div>`;
-    }
-    const card=document.createElement('div'); card.className='card';
-    card.innerHTML = `<div class="row" style="justify-content:space-between">
-      <div><b>${d.name}</b> <span class="pill">${cap(b.section)}</span> <span class="pill">${b.type}</span></div>
-      <button class="btn ghost" onclick="rmBlk(${i})">Remove</button>
-    </div>${ui}
-    <div class="row" style="margin-top:6px"><textarea oninput="mutBlk(${i},'note',this.value)" placeholder="Note...">${b.data.note||''}</textarea></div>`;
-    el('blocks').appendChild(card);
+    const card=document.createElement("div"); card.className="card";
+    card.innerHTML = `
+      <div class="row" style="justify-content:space-between">
+        <div><b>${d.name}</b> <span class="pill">${cap(d.section)}</span></div>
+        <button class="btn ghost" onclick="rmBlk(${i})">Remove</button>
+      </div>
+      ${renderBlockUI(b,i)}
+      <div class="row" style="margin-top:6px"><textarea oninput="bNote(${i},this.value)" placeholder="Note...">${b.note||""}</textarea></div>
+    `;
+    host.appendChild(card);
   });
 }
-function mutBlk(i,kind,val){
-  const b=S.session.blocks[i]; const key=`b${i}`;
-  if(kind==='points'){ b.data.points+=val; el(`${key}_pts`).textContent=b.data.points; }
-  if(kind==='attempt'){ b.data.attempts+=1; if(val===1) b.data.makes+=1;
-    const acc=b.data.attempts?Math.round(100*b.data.makes/b.data.attempts):0;
-    el(`${key}_a`).textContent=b.data.attempts; el(`${key}_m`).textContent=b.data.makes; el(`${key}_acc`).textContent=acc+'%'; }
-  if(kind==='toPar'){ b.data.toPar+=val; el(`${key}_par`).textContent=b.data.toPar; const inp=el(`${key}_in`); if(inp) inp.value=b.data.toPar; }
-  if(kind==='toParSet'){ b.data.toPar=parseInt(val||0,10)||0; el(`${key}_par`).textContent=b.data.toPar; }
-  if(kind==='note'){ b.data.note=val; }
-}
+
 function rmBlk(i){ S.session.blocks.splice(i,1); renderLog(); }
-function startDraft(){ go('log'); if(S.session.status==='idle'||S.session.status==='ended'){ S.session={id:rid(),status:'draft',startedAt:null,elapsedMs:0,blocks:[]}; renderLog(); } }
-function startSession(){ if(S.session.status==='draft'||S.session.status==='paused'){ S.session.status='active'; if(!S.session.startedAt) S.session.startedAt=Date.now();
-  if(t) clearInterval(t); t=setInterval(()=>{ const now=Date.now(); const ms=(S.session.startedAt? now-S.session.startedAt:0)+(S.session.elapsedMs||0); el('elapsed').textContent=fmt(ms); },1000); renderLog(); } }
-function pauseSession(){ if(S.session.status==='active'){ S.session.status='paused'; S.session.elapsedMs=(Date.now()-S.session.startedAt)+(S.session.elapsedMs||0); S.session.startedAt=null; if(t) clearInterval(t); t=null; renderLog(); } }
-function endSession(){
-  if(S.session.status==='idle') return;
-  if(S.session.status==='active'){ S.session.elapsedMs=(Date.now()-S.session.startedAt)+(S.session.elapsedMs||0); }
-  S.session.status='ended'; if(t) clearInterval(t); t=null;
-  const practice={ id:S.session.id, startedAt:S.session.startedAt||Date.now(), endedAt:Date.now(), elapsedMs:S.session.elapsedMs, blocks: JSON.parse(JSON.stringify(S.session.blocks)) };
-  S.practices.push(practice); localStorage.setItem(K.practices, JSON.stringify(S.practices));
-  S.session={id:null,status:'idle',startedAt:null,elapsedMs:0,blocks:[]};
-  alert('Practice saved ✔︎'); go('home');
+function bNote(i,val){ S.session.blocks[i].note=val; }
+
+function renderBlockUI(b,i){
+  const d = findDrill(b.drillId);
+  // Specialized UIs for common patterns; fall back to generic attempt entry
+  if(d.id==="put_gate"){ // points
+    const pts = b.summary.points||0;
+    return `
+      <div class="row">
+        <button class="btn" onclick="blkPoints(${i},1)">+1</button>
+        <button class="btn" onclick="blkPoints(${i},3)">+3</button>
+        <button class="btn" onclick="blkPoints(${i},-1)">-1</button>
+      </div>
+      <div>Total Points: <b id="b${i}_pts">${pts}</b></div>`;
+  }
+  if(d.id==="put_lag"){ // percent via attempts (make/miss)
+    const makes=b.summary.makes||0, atts=b.summary.attempts||0, acc=atts?Math.round(100*makes/atts):0;
+    return `
+      <div class="row">
+        <button class="btn ok" onclick="blkMake(${i},true)">Made</button>
+        <button class="btn bad" onclick="blkMake(${i},false)">Miss</button>
+      </div>
+      <div>Attempts: <b id="b${i}_a">${atts}</b> • Makes: <b id="b${i}_m">${makes}</b> • Acc: <b id="b${i}_acc">${acc}%</b></div>`;
+  }
+  if(d.id==="rng_7i_acc"){ // hit/miss
+    const hits=b.summary.hits||0, atts=b.summary.attempts||0, fg=atts?Math.round(100*hits/atts):0;
+    return `
+      <div class="row">
+        <button class="btn ok" onclick="blkHit(${i},true)">Hit</button>
+        <button class="btn bad" onclick="blkHit(${i},false)">Miss</button>
+      </div>
+      <div>Attempts: <b id="b${i}_a">${atts}</b> • Hits: <b id="b${i}_h">${hits}</b> • FG: <b id="b${i}_fg">${fg}%</b></div>`;
+  }
+  if(d.id==="crs_3holes"){ // per-hole strokes → toPar sum
+    const sum=b.summary.toPar||0;
+    return `
+      <div class="row">
+        <input id="b${i}_hole" type="number" placeholder="Hole #" style="max-width:90px"/>
+        <input id="b${i}_par" type="number" placeholder="Par" style="max-width:90px"/>
+        <input id="b${i}_st" type="number" placeholder="Strokes" style="max-width:120px"/>
+        <button class="btn" onclick="blkHole(${i})">Add Hole</button>
+      </div>
+      <div>ToPar Total: <b id="b${i}_parTot">${sum}</b></div>
+      <div id="b${i}_holes" class="list" style="margin-top:6px"></div>
+    `;
+  }
+  if(d.id==="chip_updown"){ // save/miss
+    const saves=b.summary.saves||0, atts=b.summary.attempts||0, rate=atts?Math.round(100*saves/atts):0;
+    return `
+      <div class="row">
+        <button class="btn ok" onclick="blkSave(${i},true)">Save</button>
+        <button class="btn bad" onclick="blkSave(${i},false)">Miss</button>
+      </div>
+      <div>Attempts: <b id="b${i}_a">${atts}</b> • Saves: <b id="b${i}_s">${saves}</b> • Rate: <b id="b${i}_r">${rate}%</b></div>`;
+  }
+  // Fallback generic: just a note and an "Add attempt" with free JSON payload
+  return `<div class="mut">Generic drill. Attempts will be recorded as notes only.</div>`;
 }
 
-/* ---------- Add Drill / Quick Drill ---------- */
-function opts(sel, arr, map){ sel.innerHTML=''; arr.forEach(v=>{ const o=document.createElement('option'); o.value=map?map(v):v; o.textContent=map?map(v):v; sel.appendChild(o); }); }
-function buildAddDrillPicker(){ const s=el('adSec').value; const dSel=el('adDrill'); opts(dSel, LIB[s], d=>d.id); }
+/* ---- Block action handlers ---- */
+function blkPoints(i,delta){
+  const b=S.session.blocks[i];
+  b.attempts.push({t:Date.now(),points:Math.max(0,delta)});
+  b.summary.points = (b.summary.points||0) + delta;
+  el(`b${i}_pts`).textContent = b.summary.points;
+}
+function blkMake(i,ok){
+  const b=S.session.blocks[i];
+  b.attempts.push({t:Date.now(),distance_ft:b.settings.distance_ft||null,result: ok?"make":"miss"});
+  b.summary.attempts = (b.summary.attempts||0)+1;
+  if(ok) b.summary.makes = (b.summary.makes||0)+1;
+  const acc = b.summary.attempts? Math.round(100*(b.summary.makes||0)/b.summary.attempts):0;
+  el(`b${i}_a`).textContent=b.summary.attempts; el(`b${i}_m`).textContent=b.summary.makes||0; el(`b${i}_acc`).textContent=acc+"%";
+}
+function blkHit(i,ok){
+  const b=S.session.blocks[i];
+  b.attempts.push({t:Date.now(),hit:!!ok});
+  b.summary.attempts = (b.summary.attempts||0)+1;
+  if(ok) b.summary.hits = (b.summary.hits||0)+1;
+  const fg = b.summary.attempts? Math.round(100*(b.summary.hits||0)/b.summary.attempts):0;
+  el(`b${i}_a`).textContent=b.summary.attempts; el(`b${i}_h`).textContent=b.summary.hits||0; el(`b${i}_fg`).textContent=fg+"%";
+}
+function blkHole(i){
+  const hole = parseInt(el(`b${i}_hole`).value||0,10);
+  const par  = parseInt(el(`b${i}_par`).value||0,10);
+  const st   = parseInt(el(`b${i}_st`).value||0,10);
+  if(!(hole&&par&&st)) return alert("Fill hole, par, strokes.");
+  const toPar = st - par;
+  const b=S.session.blocks[i];
+  b.attempts.push({hole,par,strokes:st,toPar});
+  b.summary.toPar = (b.summary.toPar||0) + toPar;
+  el(`b${i}_parTot`).textContent = b.summary.toPar;
+  renderHoleList(i);
+  el(`b${i}_hole`).value = ""; el(`b${i}_par`).value=""; el(`b${i}_st`).value="";
+}
+function renderHoleList(i){
+  const host = el(`b${i}_holes`); if(!host) return;
+  host.innerHTML="";
+  const b=S.session.blocks[i];
+  b.attempts.forEach(a=>{
+    if(a.hole!==undefined){
+      const row=document.createElement("div"); row.className="item";
+      row.innerHTML=`<div>Hole ${a.hole}: par ${a.par}, strokes ${a.strokes} → toPar ${a.toPar}</div>`;
+      host.appendChild(row);
+    }
+  });
+}
+function blkSave(i,ok){
+  const b=S.session.blocks[i];
+  b.attempts.push({t:Date.now(),save:!!ok});
+  b.summary.attempts = (b.summary.attempts||0)+1;
+  if(ok) b.summary.saves = (b.summary.saves||0)+1;
+  const rate = b.summary.attempts? Math.round(100*(b.summary.saves||0)/b.summary.attempts):0;
+  el(`b${i}_a`).textContent=b.summary.attempts; el(`b${i}_s`).textContent=b.summary.saves||0; el(`b${i}_r`).textContent=rate+"%";
+}
+
+/* ---- Add drill paths ---- */
+function addToSession(){
+  if(S.session.status==="idle") startDraft();
+  const sec=el("adSec").value, d=findDrill(el("adDrill").value);
+  S.session.blocks.push(newBlockFromDrill(d, sec));
+  closeSheet("add"); renderLog();
+}
+function addDirect(id){
+  const d=findDrill(id); if(!d) return;
+  if(S.session.status==="idle") startDraft();
+  S.session.blocks.push(newBlockFromDrill(d, d.section));
+  go("log");
+}
+function newBlockFromDrill(d, sec){
+  return {
+    id:rid(), drillId:d.id, section:sec,
+    settings: JSON.parse(JSON.stringify(d.defaults||{})),
+    attempts: [],
+    summary: {},
+    note: ""
+  };
+}
+
+/* ---- Quick log: saved as single-block practice ---- */
+let Q=null;
 function buildQuickDrillPicker(){
-  const sSel=el('qdSec'), dSel=el('qdDrill');
-  if(!sSel.options.length) opts(sSel, SECS);
-  const s=sSel.value||'putting'; opts(dSel, LIB[s], d=>d.id); buildQuickUI();
+  const sSel=el("qdSec"), dSel=el("qdDrill");
+  if(!sSel.options.length){ sSel.innerHTML=""; SECTIONS.forEach(s=>{ const o=document.createElement("option"); o.value=s;o.textContent=s; sSel.appendChild(o); }); }
+  const sec=sSel.value||"putting"; dSel.innerHTML=""; drillsBySection(sec).forEach(d=>{ const o=document.createElement("option"); o.value=d.id; o.textContent=d.name; dSel.appendChild(o); });
+  buildQuickUI();
 }
 function buildQuickUI(){
-  let id=el('qdDrill').value; const d=findDrill(id); const box=el('qdUI'); box.innerHTML='';
-  if(!d) return;
-  let html='';
-  if(d.type==='points'){
-    html=`<div class="row"><button class="btn" onclick="qd('points',1)">+1</button><button class="btn" onclick="qd('points',3)">+3</button><button class="btn" onclick="qd('points',-1)">-1</button></div>
-    <div>Total: <b id="qd_pts">0</b></div>`;
-  }else if(d.type==='percent'){
-    html=`<div class="row"><button class="btn ok" onclick="qd('make',1)">Made</button><button class="btn bad" onclick="qd('make',0)">Miss</button></div>
-    <div>Att: <b id="qd_a">0</b> • Makes: <b id="qd_m">0</b> • Acc: <b id="qd_acc">0%</b></div>`;
-  }else if(d.type==='score_to_par'){
-    html=`<div class="row"><button class="btn" onclick="qd('par',-1)">-1</button><input id="qd_in" type="number" value="0" oninput="qd('parSet',this.value)" style="max-width:100px"/><button class="btn" onclick="qd('par',1)">+1</button></div>
-    <div>ToPar: <b id="qd_par">0</b></div>`;
+  const d=findDrill(el("qdDrill").value); const box=el("qdUI"); if(!d){ box.textContent="Pick a drill"; return; }
+  Q=newBlockFromDrill(d,d.section);
+  // Reuse same specialized UI as session, but bind to Q instead.
+  let html="";
+  if(d.id==="put_gate"){
+    html=`<div class="row">
+      <button class="btn" onclick="qPoints(1)">+1</button>
+      <button class="btn" onclick="qPoints(3)">+3</button>
+      <button class="btn" onclick="qPoints(-1)">-1</button>
+    </div><div>Total Points: <b id="q_pts">0</b></div>`;
+  }else if(d.id==="put_lag"){
+    html=`<div class="row">
+      <button class="btn ok" onclick="qMake(true)">Made</button>
+      <button class="btn bad" onclick="qMake(false)">Miss</button>
+    </div><div>Attempts: <b id="q_a">0</b> • Makes: <b id="q_m">0</b> • Acc: <b id="q_acc">0%</b></div>`;
+  }else if(d.id==="rng_7i_acc"){
+    html=`<div class="row">
+      <button class="btn ok" onclick="qHit(true)">Hit</button>
+      <button class="btn bad" onclick="qHit(false)">Miss</button>
+    </div><div>Attempts: <b id="q_a">0</b> • Hits: <b id="q_h">0</b> • FG: <b id="q_fg">0%</b></div>`;
+  }else if(d.id==="crs_3holes"){
+    html=`<div class="row">
+      <input id="q_hole" type="number" placeholder="Hole #"/>
+      <input id="q_par" type="number" placeholder="Par"/>
+      <input id="q_st" type="number" placeholder="Strokes"/>
+      <button class="btn" onclick="qHole()">Add Hole</button>
+    </div><div>Total ToPar: <b id="q_parTot">0</b></div><div id="q_holes" class="list" style="margin-top:6px"></div>`;
+  }else if(d.id==="chip_updown"){
+    html=`<div class="row">
+      <button class="btn ok" onclick="qSave(true)">Save</button>
+      <button class="btn bad" onclick="qSave(false)">Miss</button>
+    </div><div>Attempts: <b id="q_a">0</b> • Saves: <b id="q_s">0</b> • Rate: <b id="q_r">0%</b></div>`;
   }else{
-    html=`<div class="mut">Free-form drill. Add notes only.</div>`;
+    html=`<div class="mut">Generic drill. Attempts will be notes only.</div>`;
   }
-  html += `<div class="row" style="margin-top:6px"><textarea id="qd_note" placeholder="Notes..."></textarea></div>`;
-  box.innerHTML=html; Q={points:0,attempts:0,makes:0,toPar:0,note:''};
+  html += `<div class="row" style="margin-top:6px"><textarea id="q_note" placeholder="Note..."></textarea></div>`;
+  box.innerHTML=html;
 }
-let Q={points:0,attempts:0,makes:0,toPar:0,note:''};
-function qd(kind,val){
-  if(kind==='points'){ Q.points+=val; el('qd_pts').textContent=Q.points; }
-  if(kind==='make'){ Q.attempts+=1; if(val===1) Q.makes+=1; const acc=Q.attempts?Math.round(100*Q.makes/Q.attempts):0; el('qd_a').textContent=Q.attempts; el('qd_m').textContent=Q.makes; el('qd_acc').textContent=acc+'%'; }
-  if(kind==='par'){ Q.toPar+=val; el('qd_par').textContent=Q.toPar; const inp=el('qd_in'); if(inp) inp.value=Q.toPar; }
-  if(kind==='parSet'){ Q.toPar=parseInt(val||0,10)||0; el('qd_par').textContent=Q.toPar; }
-}
+function qPoints(delta){ Q.attempts.push({t:Date.now(),points:Math.max(0,delta)}); Q.summary.points=(Q.summary.points||0)+delta; el("q_pts").textContent=Q.summary.points; }
+function qMake(ok){ Q.attempts.push({t:Date.now(),result:ok?"make":"miss"}); Q.summary.attempts=(Q.summary.attempts||0)+1; if(ok) Q.summary.makes=(Q.summary.makes||0)+1;
+  const acc=Q.summary.attempts?Math.round(100*(Q.summary.makes||0)/Q.summary.attempts):0; el("q_a").textContent=Q.summary.attempts; el("q_m").textContent=Q.summary.makes||0; el("q_acc").textContent=acc+"%"; }
+function qHit(ok){ Q.attempts.push({t:Date.now(),hit:!!ok}); Q.summary.attempts=(Q.summary.attempts||0)+1; if(ok) Q.summary.hits=(Q.summary.hits||0)+1;
+  const fg=Q.summary.attempts?Math.round(100*(Q.summary.hits||0)/Q.summary.attempts):0; el("q_a").textContent=Q.summary.attempts; el("q_h").textContent=Q.summary.hits||0; el("q_fg").textContent=fg+"%"; }
+function qHole(){ const hole=parseInt(el("q_hole").value||0,10), par=parseInt(el("q_par").value||0,10), st=parseInt(el("q_st").value||0,10); if(!(hole&&par&&st)) return alert("Fill hole, par, strokes.");
+  const toPar=st-par; Q.attempts.push({hole,par,strokes:st,toPar}); Q.summary.toPar=(Q.summary.toPar||0)+toPar; el("q_parTot").textContent=Q.summary.toPar;
+  const host=el("q_holes"); const row=document.createElement("div"); row.className="item"; row.innerHTML=`<div>Hole ${hole}: par ${par}, strokes ${st} → toPar ${toPar}</div>`; host.appendChild(row);
+  el("q_hole").value=""; el("q_par").value=""; el("q_st").value=""; }
+function qSave(ok){ Q.attempts.push({t:Date.now(),save:!!ok}); Q.summary.attempts=(Q.summary.attempts||0)+1; if(ok) Q.summary.saves=(Q.summary.saves||0)+1;
+  const rate=Q.summary.attempts?Math.round(100*(Q.summary.saves||0)/Q.summary.attempts):0; el("q_a").textContent=Q.summary.attempts; el("q_s").textContent=Q.summary.saves||0; el("q_r").textContent=rate+"%"; }
 function saveQuick(){
-  Q.note = el('qd_note').value||'';
-  const sec=el('qdSec').value, drill=findDrill(el('qdDrill').value);
-  const p={ id:rid(), startedAt:Date.now(), endedAt:Date.now(), elapsedMs:0, blocks:[{section:sec, drillId:drill.id, type:drill.type, data:JSON.parse(JSON.stringify(Q))}] };
-  S.practices.push(p); localStorage.setItem(K.practices, JSON.stringify(S.practices));
-  closeSheet('quick'); renderHome();
-}
-function addToSession(){
-  if(S.session.status==='idle') startDraft();
-  const sec=el('adSec').value, d=findDrill(el('adDrill').value);
-  S.session.blocks.push({section:sec, drillId:d.id, type:d.type, data:{points:0,attempts:0,makes:0,toPar:0,note:''}});
-  closeSheet('add'); renderLog();
+  Q.note = el("q_note").value||"";
+  const p={ id:rid(), startedAt:Date.now(), endedAt:Date.now(), elapsedMs:0, blocks:[Q] };
+  S.practices.push(p); localStorage.setItem(LS.practices, JSON.stringify(S.practices));
+  closeSheet("quick"); renderHome();
 }
 
-/* ---------- Summary & Practice Detail ---------- */
+/* ---- Sheets select builders ---- */
+function opts(sel, arr, map){ sel.innerHTML=""; arr.forEach(v=>{ const o=document.createElement("option"); const val=map?map(v):v; o.value=val; o.textContent=map?map(v):v; sel.appendChild(o); }); }
+function buildAddDrillPicker(){ const s=el("adSec").value||(opts(el("adSec"),SECTIONS), el("adSec").value); const list=drillsBySection(s); opts(el("adDrill"), list, d=>d.id); }
+function renderLib(filter="all"){
+  if(!el("adSec").options.length) opts(el("adSec"), SECTIONS);
+  if(!el("qdSec").options.length) opts(el("qdSec"), SECTIONS);
+  buildAddDrillPicker(); buildQuickDrillPicker();
+
+  const host=el("lib"); host.innerHTML="";
+  drillsBySection(filter==="all"?"all":filter).forEach(d=>{
+    const row=document.createElement("div"); row.className="item";
+    row.innerHTML=`<div>
+      <div><b>${d.name}</b> <span class="pill">${cap(d.section)}</span></div>
+      <div class="mut">Metrics: ${d.metrics.map(m=>m.display).join(", ")}</div>
+    </div>
+    <div class="row">
+      <button class="btn" onclick="openQuickFor('${d.id}')">Quick Log</button>
+      <button class="btn ghost" onclick="addDirect('${d.id}')">Add to Practice</button>
+    </div>`;
+    host.appendChild(row);
+  });
+}
+function filterLib(sec){ renderLib(sec==='all'?'all':sec); }
+function openQuickFor(id){ openSheet("quick"); const d=findDrill(id); el("qdSec").value=d.section; buildQuickDrillPicker(); el("qdDrill").value=d.id; buildQuickUI(); }
+
+/* =====================  SUMMARY & STATS  ===================== */
 function renderCurrentSummary(){
-  const sum=el('sumBody'); sum.innerHTML='';
+  const sum=el("sumBody"); sum.innerHTML="";
   if(S.session.blocks.length===0){ sum.innerHTML='<div class="mut">No drills yet.</div>'; return; }
-  const by=bySection(S.session.blocks);
+  const by=summarizeBySection(S.session.blocks);
   Object.entries(by).forEach(([sec,v])=>{
-    const div=document.createElement('div'); div.className='item';
-    div.innerHTML=`<div><b>${cap(sec)}</b> — ${v.blocks} drills</div><div class="mut">${v.summary}</div>`;
+    const div=document.createElement("div"); div.className="item";
+    div.innerHTML=`<div><b>${cap(sec)}</b> — ${v.count} drills</div><div class="mut">${v.summary}</div>`;
     sum.appendChild(div);
   });
 }
 function openPractice(id){
   const p=S.practices.find(x=>x.id===id); if(!p) return;
-  el('pdTitle').textContent='Practice Detail';
-  el('pdMeta').textContent=`${new Date(p.startedAt).toLocaleString()} • ${fmt(p.elapsedMs||0)} • ${p.blocks.length} drills`;
-  const by=bySection(p.blocks); let s='';
-  for(const [sec,v] of Object.entries(by)){ s+=`<div class="item"><div><b>${cap(sec)}</b> — ${v.blocks} drills</div><div class="mut">${v.summary}</div></div>`; }
-  el('pdBySec').innerHTML = s || '<div class="mut">No data.</div>';
-  const host=el('pdBlocks'); host.innerHTML='';
+  el("pdTitle").textContent='Practice Detail';
+  el("pdMeta").textContent=`${new Date(p.startedAt).toLocaleString()} • ${fmt(p.elapsedMs||0)} • ${p.blocks.length} drills`;
+  const by=summarizeBySection(p.blocks); let s='';
+  for(const [sec,v] of Object.entries(by)){ s+=`<div class="item"><div><b>${cap(sec)}</b> — ${v.count} drills</div><div class="mut">${v.summary}</div></div>`; }
+  el("pdBySec").innerHTML = s || '<div class="mut">No data.</div>';
+  const host=el("pdBlocks"); host.innerHTML='';
   p.blocks.forEach(b=>{
     const d=findDrill(b.drillId)||{name:b.drillId};
-    let line=''; if(b.type==='points') line=`Pts ${b.data.points}`;
-    if(b.type==='percent'){ const acc=b.data.attempts?Math.round(100*b.data.makes/b.data.attempts):0; line=`Acc ${acc}% (${b.data.makes}/${b.data.attempts})`; }
-    if(b.type==='score_to_par') line=`ToPar ${b.data.toPar}`;
-    const row=document.createElement('div'); row.className='item';
-    row.innerHTML=`<div><b>${d.name}</b> <span class="pill">${cap(b.section)}</span> <span class="pill">${b.type}</span><div class="mut">${line}${b.data.note?' • '+b.data.note:''}</div></div>`;
+    let line=[];
+    if("points" in (b.summary||{})) line.push(`Pts ${b.summary.points}`);
+    if("attempts" in (b.summary||{}) && "makes" in (b.summary||{})){
+      const acc=b.summary.attempts?Math.round(100*(b.summary.makes||0)/b.summary.attempts):0;
+      line.push(`Acc ${acc}% (${b.summary.makes||0}/${b.summary.attempts||0})`);
+    }
+    if("hits" in (b.summary||{}) && "attempts" in (b.summary||{})){
+      const fg=b.summary.attempts?Math.round(100*(b.summary.hits||0)/b.summary.attempts):0;
+      line.push(`FG ${fg}% (${b.summary.hits||0}/${b.summary.attempts||0})`);
+    }
+    if("toPar" in (b.summary||{})) line.push(`ToPar ${b.summary.toPar}`);
+    const row=document.createElement("div"); row.className='item';
+    row.innerHTML=`<div><b>${d.name}</b> <span class="pill">${cap(b.section)}</span>
+      <div class="mut">${line.join(' • ')}${b.note?' • '+b.note:''}</div></div>`;
     host.appendChild(row);
   });
-  openSheet('pdetail');
+  openSheet("pdetail");
 }
 
-/* ---------- Stats helpers ---------- */
-const cap = s => s ? s[0].toUpperCase()+s.slice(1):'';
-function bySection(blocks){
+function msAvg(arr){ if(!arr.length) return 0; return Math.round(arr.reduce((a,b)=>a+(b||0),0)/arr.length); }
+function summarizeBySection(blocks){
   const out={};
-  blocks.forEach(b=>{
-    out[b.section]=out[b.section]||{blocks:0,points:0,attempts:0,makes:0,toPar:0};
-    out[b.section].blocks++;
-    if(b.type==='points') out[b.section].points+=b.data.points||0;
-    if(b.type==='percent'){ out[b.section].attempts+=b.data.attempts||0; out[b.section].makes+=b.data.makes||0; }
-    if(b.type==='score_to_par') out[b.section].toPar+=b.data.toPar||0;
-  });
+  for(const b of blocks){
+    const sec=b.section;
+    const o=out[sec]||(out[sec]={count:0,points:0,attempts:0,makes:0,hits:0,toPar:0});
+    o.count++;
+    if("points" in (b.summary||{})) o.points += b.summary.points||0;
+    if("attempts" in (b.summary||{}) && "makes" in (b.summary||{})){ o.attempts += b.summary.attempts||0; o.makes += b.summary.makes||0; }
+    if("hits" in (b.summary||{}) && "attempts" in (b.summary||{})){ o.attempts += b.summary.attempts||0; o.hits += b.summary.hits||0; }
+    if("toPar" in (b.summary||{})) o.toPar += b.summary.toPar||0;
+  }
   for(const [sec,v] of Object.entries(out)){
     const parts=[];
     if(v.points) parts.push(`Pts ${v.points}`);
-    if(v.attempts) parts.push(`Acc ${Math.round(100*(v.makes||0)/(v.attempts||1))}% (${v.makes}/${v.attempts})`);
+    if(v.hits) parts.push(`FG ${v.attempts?Math.round(100*v.hits/v.attempts):0}% (${v.hits}/${v.attempts})`);
+    else if(v.makes) parts.push(`Acc ${v.attempts?Math.round(100*v.makes/v.attempts):0}% (${v.makes}/${v.attempts})`);
     parts.push(`ToPar ${v.toPar}`);
-    v.summary=parts.join(' • ');
+    v.summary = parts.join(" • ");
   }
   return out;
 }
-function byDrill(practices){
+function summarizeByDrill(practices){
   const map={};
-  practices.forEach(p=>p.blocks.forEach(b=>{
-    const d=findDrill(b.drillId)||{name:b.drillId,section:b.section,type:b.type};
-    const r=map[b.drillId]||{name:d.name,section:b.section,type:b.type,count:0,points:0,attempts:0,makes:0,toPar:0};
-    r.count++; if(b.type==='points') r.points+=b.data.points||0;
-    if(b.type==='percent'){ r.attempts+=b.data.attempts||0; r.makes+=b.data.makes||0; }
-    if(b.type==='score_to_par') r.toPar+=b.data.toPar||0; map[b.drillId]=r;
-  }));
+  for(const p of practices){
+    for(const b of p.blocks){
+      const key=b.drillId; const d=findDrill(key)||{name:key,section:b.section};
+      const m=map[key]||(map[key]={name:d.name,section:d.section,count:0,points:0,attempts:0,makes:0,hits:0,toPar:0});
+      m.count++;
+      if("points" in (b.summary||{})) m.points += b.summary.points||0;
+      if("attempts" in (b.summary||{}) && "makes" in (b.summary||{})){ m.attempts += b.summary.attempts||0; m.makes += b.summary.makes||0; }
+      if("hits" in (b.summary||{}) && "attempts" in (b.summary||{})){ m.attempts += b.summary.attempts||0; m.hits += b.summary.hits||0; }
+      if("toPar" in (b.summary||{})) m.toPar += b.summary.toPar||0;
+    }
+  }
   return map;
 }
-const avg = arr => arr.length? Math.round(arr.reduce((a,b)=>a+(b||0),0)/arr.length):0;
-
 function renderStats(){
-  el('statP').textContent = S.practices.length;
-  el('statD').textContent = S.practices.reduce((n,p)=>n+p.blocks.length,0);
-  const a=avg(S.practices.map(p=>p.elapsedMs)); el('statAvg').textContent=a?fmt(a):'–';
+  el("statP").textContent = S.practices.length;
+  el("statD").textContent = S.practices.reduce((n,p)=>n+p.blocks.length,0);
+  const a=msAvg(S.practices.map(p=>p.elapsedMs)); el("statAvg").textContent=a?fmt(a):"–";
 
   // By section
-  const secHost=el('bySec'); secHost.innerHTML='';
+  const secHost=el("bySec"); secHost.innerHTML='';
   const all = S.practices.flatMap(p=>p.blocks);
-  const secMap=bySection(all);
+  const secMap=summarizeBySection(all);
   for(const [sec,v] of Object.entries(secMap)){
-    const acc = v.attempts? ` • Acc ${Math.round(100*v.makes/v.attempts)}% (${v.makes}/${v.attempts})`:'';
+    const acc = (v.makes||v.hits)? ` • Acc ${v.attempts?Math.round(100*(v.makes||v.hits)/v.attempts):0}% (${(v.makes||v.hits)}/${v.attempts})`:'';
     const pts = v.points? ` • Pts ${v.points}`:'';
     const row=document.createElement('div'); row.className='item';
-    row.innerHTML=`<div><b>${cap(sec)}</b> — ${v.blocks} drills${pts}${acc} • ToPar ${v.toPar}</div>`;
+    row.innerHTML=`<div><b>${cap(sec)}</b> — ${v.count} drills${pts}${acc} • ToPar ${v.toPar}</div>`;
     secHost.appendChild(row);
   }
 
   // By drill
-  const dHost=el('byDrill'); dHost.innerHTML='';
-  const dMap=byDrill(S.practices);
+  const dHost=el("byDrill"); dHost.innerHTML='';
+  const dMap=summarizeByDrill(S.practices);
   Object.values(dMap).forEach(v=>{
-    const acc = v.attempts? ` • Acc ${Math.round(100*v.makes/v.attempts)}% (${v.makes}/${v.attempts})`:'';
+    const acc = (v.makes||v.hits)? ` • Acc ${v.attempts?Math.round(100*(v.makes||v.hits)/v.attempts):0}% (${(v.makes||v.hits)}/${v.attempts})`:'';
     const pts = v.points? ` • Pts ${v.points}`:'';
-    const par = (v.type==='score_to_par')? ` • ToPar ${v.toPar}`:'';
+    const par = v.toPar? ` • ToPar ${v.toPar}`:'';
     const row=document.createElement('div'); row.className='item';
-    row.innerHTML=`<div><b>${v.name}</b> <span class="pill">${cap(v.section)}</span> <span class="pill">${v.type}</span>
+    row.innerHTML=`<div><b>${v.name}</b> <span class="pill">${cap(v.section)}</span>
       <div class="mut">Uses: ${v.count}${pts}${acc}${par}</div></div>`;
     dHost.appendChild(row);
   });
@@ -494,59 +690,41 @@ function renderStats(){
   });
 }
 
-/* ---------- Library ---------- */
-function renderLib(filter='all'){
-  // header selects for sheets
-  if(!el('adSec').options.length) opts(el('adSec'), SECS);
-  if(!el('qdSec').options.length) opts(el('qdSec'), SECS);
-  buildAddDrillPicker(); buildQuickDrillPicker();
-
-  const host=el('lib'); host.innerHTML='';
-  const drills = filter==='all'? allDrills() : allDrills().filter(d=>d.section===filter);
-  drills.forEach(d=>{
-    const row=document.createElement('div'); row.className='item';
-    row.innerHTML=`<div>
-      <div><b>${d.name}</b> <span class="pill">${cap(d.section)}</span> <span class="pill">${d.type}</span></div>
-      <div class="mut">${d.info}</div>
-    </div>
-    <div class="row">
-      <button class="btn" onclick="openQuickFor('${d.id}')">Quick Log</button>
-      <button class="btn ghost" onclick="addDirect('${d.id}')">Add to Practice</button>
-    </div>`;
-    host.appendChild(row);
-  });
-}
-function filterLib(sec){ renderLib(sec==='all'?'all':sec); }
-function openQuickFor(id){
-  openSheet('quick'); const d=findDrill(id); el('qdSec').value=d.section; buildQuickDrillPicker(); el('qdDrill').value=d.id; buildQuickUI();
-}
-function addDirect(id){
-  const d=findDrill(id); if(!d) return;
-  if(S.session.status==='idle') startDraft();
-  S.session.blocks.push({section:d.section, drillId:d.id, type:d.type, data:{points:0,attempts:0,makes:0,toPar:0,note:''}});
-  go('log');
+/* =====================  DATA MGMT  ===================== */
+function hardReset(){
+  if(!confirm("This will clear all v4 data (localStorage). Continue?")) return;
+  localStorage.removeItem(LS.practices);
+  S.practices = [];
+  S.session={id:null,status:"idle",startedAt:null,elapsedMs:0,blocks:[]};
+  renderHome(); renderStats(); renderLib("all"); go("home");
 }
 
-/* ---------- Seed ---------- */
+/* =====================  SEED DATA  ===================== */
 function seed(){
   const now=Date.now();
   S.practices = [
     {id:rid(), startedAt:now-6*86400000, endedAt:now-6*86400000+40*60000, elapsedMs:40*60000, blocks:[
-      {section:'putting', drillId:'put_gate', type:'points', data:{points:18,attempts:0,makes:0,toPar:0,note:'Good tempo'}},
-      {section:'range', drillId:'rng_7i_acc', type:'percent', data:{points:0,attempts:25,makes:16,toPar:0,note:''}},
-      {section:'course', drillId:'crs_3holes', type:'score_to_par', data:{points:0,attempts:0,makes:0,toPar:-2,note:''}},
+      {id:rid(), drillId:"put_gate", section:"putting", settings:{gate_width_in:8, ball_count:24}, attempts:[{points:1},{points:3},{points:1}], summary:{points:18}, note:"Good tempo"},
+      {id:rid(), drillId:"rng_7i_acc", section:"range", settings:{target_yards:165, club:"7i"}, attempts:[{hit:true},{hit:false}], summary:{attempts:25,hits:16}, note:"Wind off right"},
+      {id:rid(), drillId:"crs_3holes", section:"course", settings:{}, attempts:[{hole:1,par:4,strokes:5,toPar:1},{hole:2,par:3,strokes:2,toPar:-1},{hole:3,par:5,strokes:4,toPar:-1}], summary:{toPar:-1}, note:""}
     ]},
     {id:rid(), startedAt:now-3*86400000, endedAt:now-3*86400000+55*60000, elapsedMs:55*60000, blocks:[
-      {section:'chipping', drillId:'chip_ladder', type:'points', data:{points:12,attempts:0,makes:0,toPar:0,note:''}},
-      {section:'putting', drillId:'put_lag', type:'percent', data:{points:0,attempts:30,makes:18,toPar:0,note:''}},
-    ]},
+      {id:rid(), drillId:"chip_updown", section:"chipping", settings:{lie:"fairway"}, attempts:[{save:true},{save:false}], summary:{attempts:10,saves:6}, note:""},
+      {id:rid(), drillId:"put_lag", section:"putting", settings:{distance_ft:30,target_circle_ft:3}, attempts:[{result:"make"},{result:"miss"}], summary:{attempts:30,makes:18}, note:""}
+    ]}
   ];
-  localStorage.setItem(K.practices, JSON.stringify(S.practices));
+  localStorage.setItem(LS.practices, JSON.stringify(S.practices));
   renderHome(); renderStats();
 }
 
-/* ---------- Init ---------- */
-function init(){ go('home'); renderLib('all'); }
+/* =====================  INIT  ===================== */
+function init(){
+  go("home"); renderLib("all");
+  // Setup selects defaults
+  if(!el("adSec").options.length){ opts(el("adSec"), SECTIONS); }
+  if(!el("qdSec").options.length){ opts(el("qdSec"), SECTIONS); }
+  buildAddDrillPicker(); buildQuickDrillPicker();
+}
 init();
 </script>
 </body>
