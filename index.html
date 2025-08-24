@@ -3,708 +3,551 @@
 <head>
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1"/>
-<title>Golf Tracker — test
-</title>
+<title>Golf Tracker — Auto-Build Practices (Lite)</title>
 <style>
-  :root{
-    --bg:#0b0c10;
-    --card:#14161b;
-    --surface:#191c22;
-    --text:#e7eaf0;
-    --muted:#a9b0bd;
-    --accent:#76e4f7;
-    --accent-2:#7cf29a;
-    --danger:#ff6b6b;
-    --shadow:0 8px 24px rgba(0,0,0,.35);
-    --radius:12px;
-    --space:12px;
-  }
-  *{box-sizing:border-box}
-  html,body{height:100%}
-  body{
-    margin:0;background:var(--bg);color:var(--text);
-    font:400 16px/1.4 system-ui,-apple-system,Segoe UI,Roboto,Inter,Arial;
-    -webkit-font-smoothing:antialiased; -moz-osx-font-smoothing:grayscale;
-  }
-  a{color:var(--accent);text-decoration:none}
-  .app{
-    min-height:100%;
-    display:grid;
-    grid-template-rows:auto 1fr auto;
-  }
-  header{
-    position:sticky;top:0;z-index:5;
-    background:linear-gradient(180deg,rgba(25,28,34,.95),rgba(25,28,34,.8));
-    backdrop-filter: blur(8px);
-    padding:10px 16px;border-bottom:1px solid rgba(255,255,255,.06);
-  }
-  header .title{font-weight:700;letter-spacing:.2px}
-  header .subtitle{font-size:.85rem;color:var(--muted)}
-  main{padding:16px 16px 96px}
-  .hidden{display:none !important}
-  .row{display:flex;gap:12px;align-items:center;flex-wrap:wrap}
-  .space{height:8px}
-  .card{
-    background:var(--card);border:1px solid rgba(255,255,255,.06);
-    border-radius:var(--radius);padding:14px;box-shadow:var(--shadow);
-  }
-  .card + .card{margin-top:12px}
-  .card h3{margin:0 0 8px;font-size:1.05rem}
-  .muted{color:var(--muted)}
-  .chip{
-    display:inline-flex;align-items:center;gap:8px;
-    padding:8px 12px;border-radius:999px;
-    background:var(--surface);border:1px solid rgba(255,255,255,.06);
-    cursor:pointer;user-select:none
-  }
-  .chip.active{outline:2px solid var(--accent)}
-  button, .btn{
-    appearance:none;border:0;border-radius:10px;
-    padding:12px 14px;background:var(--surface);
-    color:var(--text);font-weight:600;cursor:pointer;
-    border:1px solid rgba(255,255,255,.06);
-  }
-  .btn.primary{background:linear-gradient(180deg,var(--accent),#3bb9cf); color:#001b22}
-  .btn.success{background:linear-gradient(180deg,var(--accent-2),#30bf6b); color:#021b0e}
-  .btn.danger{background:linear-gradient(180deg,var(--danger),#e24a4a); color:#2a0404}
-  .btn.ghost{background:transparent;border:1px dashed rgba(255,255,255,.2)}
-  .cta-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
-  .cta-grid .btn{width:100%}
-  .list{display:grid;gap:10px}
-  .list .item{
-    display:flex;align-items:center;justify-content:space-between;gap:12px;
-    padding:12px;border-radius:10px;background:var(--surface);
-    border:1px solid rgba(255,255,255,.06)
-  }
-  .pill{padding:6px 10px;border-radius:999px;background:#0f1217;border:1px solid rgba(255,255,255,.08);font-size:.8rem;color:var(--muted)}
-  .kbd{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:.8rem;background:#0e1116;padding:2px 6px;border-radius:6px;border:1px solid rgba(255,255,255,.08)}
-  .highlight{background:linear-gradient(90deg,rgba(118,228,247,.15),rgba(124,242,154,.15));border-left:3px solid var(--accent);padding:10px;border-radius:8px}
-  /* Bottom nav */
-  nav.bottom{
-    position:fixed;left:0;right:0;bottom:0;z-index:10;
-    background:linear-gradient(180deg,rgba(25,28,34,.9),rgba(25,28,34,1));
-    backdrop-filter: blur(8px);
-    border-top:1px solid rgba(255,255,255,.06);
-    display:flex;justify-content:space-around;align-items:center;height:68px;
-  }
-  nav .tab{
-    display:flex;flex-direction:column;align-items:center;gap:4px;
-    font-size:.78rem;color:var(--muted);padding:8px 6px;min-width:64px
-  }
-  nav .tab.active{color:var(--text)}
-  nav .tab svg{width:22px;height:22px}
-  /* FAB */
-  .fab{
-    position:fixed;right:16px;bottom:84px;z-index:11;
-    border-radius:28px;padding:14px 16px;
-    display:flex;align-items:center;gap:8px;
-    box-shadow:var(--shadow);
-  }
-  .fab .dot{width:10px;height:10px;border-radius:50%;background:#00434d;box-shadow:0 0 0 6px rgba(0,0,0,.2)}
-  /* Bottom sheet */
-  .sheet{
-    position:fixed;left:0;right:0;bottom:-100%;z-index:20;
-    background:var(--card);border-top-left-radius:18px;border-top-right-radius:18px;
-    box-shadow:0 -12px 32px rgba(0,0,0,.5);
-    transition:bottom .25s ease; padding:16px;border:1px solid rgba(255,255,255,.08)
-  }
-  .sheet.open{bottom:0}
-  .sheet .handle{width:48px;height:5px;border-radius:999px;background:#2a2f38;margin:0 auto 12px}
-  .field{display:grid;gap:6px;margin:10px 0}
-  input, select, textarea{
-    width:100%;padding:10px 12px;border-radius:10px;border:1px solid rgba(255,255,255,.08);
-    background:#0f1319;color:var(--text)
-  }
-  textarea{min-height:80px;resize:vertical}
-  .split{display:grid;grid-template-columns:1fr auto;gap:10px}
-  .sticky-bar{
-    position:sticky;bottom:-16px;background:linear-gradient(180deg,transparent,rgba(25,28,34,1));
-    padding-top:10px;margin-top:12px
-  }
-  .banner{
-    display:flex;align-items:center;justify-content:space-between;gap:10px;
-    padding:12px;border-radius:10px;background:#102026;border:1px solid rgba(118,228,247,.25)
-  }
-  .grid{display:grid;gap:12px}
-  .grid.cols-3{grid-template-columns:repeat(3,1fr)}
-  .grid.cols-2{grid-template-columns:repeat(2,1fr)}
-  @media(min-width:900px){
-    main{max-width:960px;margin:0 auto}
-  }
+:root{
+  --bg:#0b0c10;--card:#14161b;--surf:#191c22;--txt:#e7eaf0;--mut:#a9b0bd;
+  --acc:#76e4f7;--ok:#7cf29a;--bad:#ff6b6b;--b:1px solid rgba(255,255,255,.08);
+}
+*{box-sizing:border-box} body{margin:0;background:var(--bg);color:var(--txt);
+  font:400 16px/1.4 system-ui,-apple-system,Segoe UI,Roboto,Arial}
+header{position:sticky;top:0;z-index:10;background:#191c22cc;backdrop-filter:blur(8px);
+  border-bottom:var(--b);padding:10px 16px}
+main{padding:14px 14px 90px}
+h3{margin:0 0 8px;font-size:1.05rem}
+.card{background:var(--card);border:var(--b);border-radius:12px;padding:12px;box-shadow:0 8px 24px #0006;margin:0 0 10px}
+.mut{color:var(--mut)} .row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.btn{appearance:none;border:var(--b);border-radius:10px;padding:10px 12px;background:var(--surf);color:var(--txt);font-weight:600;cursor:pointer}
+.primary{background:linear-gradient(180deg,var(--acc),#36b8cf);color:#001b22}
+.ok{background:linear-gradient(180deg,var(--ok),#32c16b);color:#021b0e}
+.bad{background:linear-gradient(180deg,var(--bad),#e24a4a);color:#2a0404}
+.ghost{background:transparent;border:1px dashed rgba(255,255,255,.25)}
+.list{display:grid;gap:8px}
+.item{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:10px;border-radius:10px;background:var(--surf);border:var(--b)}
+.pill{padding:4px 8px;border-radius:999px;background:#0f1217;border:var(--b);font-size:.8rem;color:var(--mut)}
+.kbd{font:600 .82rem ui-monospace,SFMono-Regular,Menlo,monospace;background:#0e1116;padding:2px 6px;border-radius:6px;border:var(--b)}
+nav{position:fixed;left:0;right:0;bottom:0;height:64px;background:#191c22f2;backdrop-filter:blur(8px);border-top:var(--b);
+  display:flex;align-items:center;justify-content:space-around}
+.tab{display:flex;flex-direction:column;align-items:center;font-size:.8rem;color:var(--mut);gap:2px}
+.tab.active{color:var(--txt)}
+.sheet{position:fixed;left:0;right:0;bottom:-100%;background:var(--card);border:var(--b);
+  border-top-left-radius:16px;border-top-right-radius:16px;box-shadow:0 -12px 32px #0008;z-index:20;transition:bottom .25s ease;padding:12px}
+.sheet.open{bottom:0} .hdl{width:42px;height:5px;border-radius:999px;background:#2a2f38;margin:6px auto 12px}
+input,select,textarea{width:100%;padding:10px 12px;border-radius:10px;border:var(--b);background:#0f1319;color:var(--txt)}
+textarea{min-height:80px;resize:vertical}
+@media(min-width:900px){main{max-width:960px;margin:0 auto}}
 </style>
 </head>
 <body>
-<div class="app">
-  <header>
-    <div class="row" style="justify-content:space-between">
-      <div>
-        <div class="title">Golf Tracker</div>
-        <div class="subtitle" id="headerSubtitle">Home</div>
+<header>
+  <div class="row" style="justify-content:space-between">
+    <div>
+      <div style="font-weight:700">Golf Tracker</div>
+      <div class="mut" id="hdr">Home</div>
+    </div>
+    <span class="pill" id="sessionPill">Idle</span>
+  </div>
+</header>
+
+<main>
+  <!-- HOME -->
+  <section id="pg-home">
+    <div class="card">
+      <h3>Hello 👋</h3>
+      <div class="mut">Log drills as you go. Each saved session becomes a “practice” automatically.</div>
+      <div class="row" style="margin-top:8px">
+        <button class="btn primary" onclick="startDraft()">Start Practice</button>
+        <button class="btn" onclick="openSheet('quick'); buildQuickDrillPicker()">Quick Log Drill</button>
       </div>
+    </div>
+
+    <div class="card">
+      <h3>Recent Practices</h3>
+      <div id="recent" class="list"></div>
+      <div class="row" style="justify-content:space-between;margin-top:8px">
+        <button class="btn ghost" onclick="seed()">Seed sample history</button>
+        <span class="pill">Last 30d: <b id="cnt30">0</b></span>
+      </div>
+    </div>
+  </section>
+
+  <!-- LOG -->
+  <section id="pg-log" style="display:none">
+    <div class="card">
+      <div class="row" style="justify-content:space-between">
+        <h3>Practice Session</h3>
+        <div class="row">
+          <span class="pill">Status: <b id="stPill">IDLE</b></span>
+          <span class="pill">Elapsed: <b id="elapsed">00:00</b></span>
+        </div>
+      </div>
+      <div id="log-empty" class="mut">No active session. Tap <span class="kbd">Start Practice</span>.</div>
+      <div id="log-body" style="display:none">
+        <div class="row" style="justify-content:space-between;margin-bottom:6px">
+          <span class="pill" id="blkCount">0 drills</span>
+          <button class="btn" onclick="openSheet('add'); buildAddDrillPicker()">Add Drill</button>
+        </div>
+        <div id="blocks"></div>
+        <div class="row" style="justify-content:space-between;margin-top:8px">
+          <div class="row">
+            <button id="btnStart" class="btn primary" onclick="startSession()">Start</button>
+            <button id="btnPause" class="btn" onclick="pauseSession()" disabled>Pause</button>
+            <button id="btnEnd" class="btn ghost" onclick="endSession()" disabled>End</button>
+          </div>
+          <button class="btn" onclick="openSheet('summary'); renderCurrentSummary()">Summary</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- STATS -->
+  <section id="pg-stats" style="display:none">
+    <div class="card">
+      <h3>Overview</h3>
       <div class="row">
-        <span class="pill" id="sessionPill">Idle</span>
+        <span class="pill">Practices: <b id="statP">0</b></span>
+        <span class="pill">Drill Logs: <b id="statD">0</b></span>
+        <span class="pill">Avg Duration: <b id="statAvg">–</b></span>
       </div>
     </div>
-  </header>
-
-  <main>
-    <!-- HOME -->
-    <section id="page-home">
-      <div id="resumeBanner" class="banner hidden">
-        <div>⏸️ You have a paused session.</div>
-        <div class="row">
-          <button class="btn" onclick="goto('log');resumeSession()">Resume</button>
-          <button class="btn ghost" onclick="endSession()">End</button>
-        </div>
-      </div>
-
-      <div class="card">
-        <h3>Hello 👋</h3>
-        <div class="muted">Quick actions</div>
-        <div class="space"></div>
-        <div class="cta-grid">
-          <button class="btn primary" onclick="startDraft()">Start Practice</button>
-          <button class="btn" onclick="openSheet('quickLogSheet')">Quick Log</button>
-        </div>
-      </div>
-
-      <div class="card">
-        <h3>Continue where you left off</h3>
-        <div id="continueList" class="list muted">No paused sessions.</div>
-      </div>
-
-      <div class="card">
-        <h3>Recent Sessions</h3>
-        <div id="recentList" class="list"></div>
-        <div class="sticky-bar">
-          <button class="btn ghost" onclick="seedFakeHistory()">Seed sample history</button>
-        </div>
-      </div>
-
-      <div class="card">
-        <h3>Highlights</h3>
-        <div class="grid cols-2">
-          <div class="highlight">🔥 Streak: <b id="streakDays">0</b> days</div>
-          <div class="highlight">🏌️ Best 7i FG% (30d): <b>63%</b></div>
-        </div>
-      </div>
-    </section>
-
-    <!-- LOG -->
-    <section id="page-log" class="hidden">
-      <div class="card">
-        <h3>Session</h3>
-        <div class="row">
-          <span class="pill">Plan: <b id="planNamePill">Default</b></span>
-          <span class="pill">Status: <b id="statusPill">Idle</b></span>
-          <span class="pill">Elapsed: <b id="elapsedPill">00:00</b></span>
-        </div>
-        <div class="space"></div>
-        <div id="logEmpty" class="muted">No active session. Tap <span class="kbd">Start</span> to begin.</div>
-
-        <div id="logBody" class="hidden">
-          <div class="card">
-            <h3>Points Drill</h3>
-            <div class="row">
-              <button class="btn" onclick="addPoints(1)">+1</button>
-              <button class="btn" onclick="addPoints(3)">+3</button>
-              <button class="btn" onclick="addPoints(-1)">-1</button>
-            </div>
-            <div class="space"></div>
-            <div>Total Points: <b id="pointsTotal">0</b></div>
-          </div>
-
-          <div class="card">
-            <h3>Attempts</h3>
-            <div class="row">
-              <button class="btn success" onclick="addAttempt(true)">Made</button>
-              <button class="btn danger" onclick="addAttempt(false)">Miss</button>
-            </div>
-            <div class="space"></div>
-            <div>Attempts: <b id="attemptsCount">0</b> • Makes: <b id="makesCount">0</b> • Acc: <b id="accPct">0%</b></div>
-          </div>
-
-          <div class="card">
-            <h3>Quick Note</h3>
-            <textarea id="noteBox" placeholder="Windy left-to-right, focus on tempo..."></textarea>
-          </div>
-
-          <div class="sticky-bar row" style="justify-content:space-between">
-            <div class="row">
-              <button id="btnStart" class="btn primary" onclick="startSession()">Start</button>
-              <button id="btnPause" class="btn" onclick="pauseSession()" disabled>Pause</button>
-              <button id="btnEnd" class="btn ghost" onclick="endSession()" disabled>End</button>
-            </div>
-            <button class="btn" onclick="saveAsPreset()">Save as Preset</button>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- STATS -->
-    <section id="page-stats" class="hidden">
-      <div class="card">
-        <h3>Overview</h3>
-        <div class="muted">This prototype shows placeholders. Filters and charts come later.</div>
-        <div class="space"></div>
-        <div class="grid cols-3">
-          <div class="highlight">🗓️ Last 30d Sessions: <b id="count30">0</b></div>
-          <div class="highlight">🏆 Personal Best (to par): <b>-3</b></div>
-          <div class="highlight">🕒 Avg Session: <b>42m</b></div>
-        </div>
-      </div>
-    </section>
-
-    <!-- LIBRARY -->
-    <section id="page-library" class="hidden">
-      <div class="card">
-        <h3>Library</h3>
-        <div class="row">
-          <span class="chip active" data-lib="drills" onclick="switchLib(this)">Drills</span>
-          <span class="chip" data-lib="courses" onclick="switchLib(this)">Courses</span>
-          <span class="chip" data-lib="presets" onclick="switchLib(this)">Presets</span>
-        </div>
-      </div>
-
-      <div id="lib-drills" class="card">
-        <h3>Drills</h3>
-        <div class="list" id="drillList"></div>
-      </div>
-
-      <div id="lib-courses" class="card hidden">
-        <h3>Courses</h3>
-        <div class="muted">Add your courses later.</div>
-      </div>
-
-      <div id="lib-presets" class="card hidden">
-        <h3>Presets</h3>
-        <div class="list" id="presetList"></div>
-        <div class="space"></div>
-        <div class="split">
-          <input id="newPresetName" placeholder="New preset name"/>
-          <button class="btn" onclick="addPreset()">Add</button>
-        </div>
-        <div class="muted">“Default” is pinned and cannot be deleted. Names must be unique and non-empty.</div>
-      </div>
-    </section>
-
-    <!-- SETTINGS -->
-    <section id="page-settings" class="hidden">
-      <div class="card">
-        <h3>Settings</h3>
-        <div class="list">
-          <div class="item">
-            <span>Units</span>
-            <select><option>Imperial</option><option>Metric</option></select>
-          </div>
-          <div class="item">
-            <span>Sounds/Haptics</span>
-            <select><option>On</option><option>Off</option></select>
-          </div>
-          <div class="item">
-            <span>Export Data</span>
-            <button class="btn ghost" onclick="alert('Coming soon')">Export</button>
-          </div>
-        </div>
-      </div>
-    </section>
-  </main>
-
-  <!-- Bottom FAB -->
-  <button class="btn primary fab" onclick="startDraft()">
-    <div class="dot"></div> Start Practice
-  </button>
-
-  <!-- Bottom Nav -->
-  <nav class="bottom">
-    <div class="tab active" data-page="home" onclick="goto('home')" title="Home">
-      <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 3l9 8h-3v9h-5v-6H11v6H6v-9H3z"/></svg>
-      <div>Home</div>
+    <div class="card">
+      <h3>By Section</h3>
+      <div id="bySec" class="list"></div>
     </div>
-    <div class="tab" data-page="log" onclick="goto('log')" title="Log">
-      <svg viewBox="0 0 24 24" fill="currentColor"><path d="M4 4h16v2H4zm0 7h16v2H4zm0 7h10v2H4z"/></svg>
-      <div>Log</div>
+    <div class="card">
+      <h3>By Drill</h3>
+      <div id="byDrill" class="list"></div>
     </div>
-    <div class="tab" data-page="stats" onclick="goto('stats')" title="Stats">
-      <svg viewBox="0 0 24 24" fill="currentColor"><path d="M3 17h2v4H3zm4-6h2v10H7zm4-4h2v14h-2zm4 8h2v6h-2zm4-12h2v18h-2z"/></svg>
-      <div>Stats</div>
+    <div class="card">
+      <h3>Practices</h3><div class="mut">Tap a practice to view details</div>
+      <div id="plist" class="list"></div>
     </div>
-    <div class="tab" data-page="library" onclick="goto('library')" title="Library">
-      <svg viewBox="0 0 24 24" fill="currentColor"><path d="M4 6h16v2H4zm0 4h10v2H4zm0 4h16v2H4zm0 4h10v2H4z"/></svg>
-      <div>Library</div>
-    </div>
-    <div class="tab" data-page="settings" onclick="goto('settings')" title="More">
-      <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 8a4 4 0 100 8 4 4 0 000-8zM4 12a8 8 0 0116 0 8 8 0 11-16 0z"/></svg>
-      <div>More</div>
-    </div>
-  </nav>
+  </section>
 
-  <!-- Sheets -->
-  <div id="quickLogSheet" class="sheet" aria-modal="true" role="dialog">
-    <div class="handle"></div>
-    <h3>Quick Log</h3>
-    <div class="field">
-      <label>Type</label>
-      <select id="qlType">
-        <option>9 holes after work</option>
-        <option>Putting practice</option>
-        <option>Range session</option>
-      </select>
+  <!-- LIBRARY -->
+  <section id="pg-lib" style="display:none">
+    <div class="card">
+      <h3>Drill Library</h3>
+      <div class="row" id="chips">
+        <button class="btn ghost" onclick="filterLib('all')">All</button>
+        <button class="btn ghost" onclick="filterLib('putting')">Putting</button>
+        <button class="btn ghost" onclick="filterLib('chipping')">Chipping</button>
+        <button class="btn ghost" onclick="filterLib('range')">Range</button>
+        <button class="btn ghost" onclick="filterLib('course')">Course</button>
+      </div>
     </div>
-    <div class="field">
-      <label>Notes</label>
-      <textarea id="qlNotes" placeholder="How did it go?"></textarea>
-    </div>
-    <div class="row" style="justify-content:flex-end;gap:8px">
-      <button class="btn ghost" onclick="closeSheet('quickLogSheet')">Cancel</button>
-      <button class="btn primary" onclick="submitQuickLog()">Save</button>
-    </div>
+    <div class="card"><div id="lib" class="list"></div></div>
+  </section>
+</main>
+
+<!-- Bottom Nav -->
+<nav>
+  <div class="tab active" data-p="home" onclick="go('home')">Home</div>
+  <div class="tab" data-p="log" onclick="go('log')">Log</div>
+  <div class="tab" data-p="stats" onclick="go('stats')">Stats</div>
+  <div class="tab" data-p="lib" onclick="go('lib')">Library</div>
+</nav>
+
+<!-- Sheets -->
+<div id="quick" class="sheet"><div class="hdl"></div>
+  <h3>Quick Log a Drill</h3>
+  <div class="row">
+    <select id="qdSec" onchange="buildQuickDrillPicker()"></select>
+    <select id="qdDrill"></select>
+  </div>
+  <div id="qdUI" class="card" style="margin-top:8px"></div>
+  <div class="row" style="justify-content:flex-end">
+    <button class="btn ghost" onclick="closeSheet('quick')">Cancel</button>
+    <button class="btn primary" onclick="saveQuick()">Save</button>
   </div>
 </div>
 
+<div id="add" class="sheet"><div class="hdl"></div>
+  <h3>Add Drill to Practice</h3>
+  <div class="row">
+    <select id="adSec" onchange="buildAddDrillPicker()"></select>
+    <select id="adDrill"></select>
+  </div>
+  <div class="row" style="justify-content:flex-end">
+    <button class="btn ghost" onclick="closeSheet('add')">Cancel</button>
+    <button class="btn primary" onclick="addToSession()">Add</button>
+  </div>
+</div>
+
+<div id="summary" class="sheet"><div class="hdl"></div>
+  <h3>Current Practice Summary</h3>
+  <div id="sumBody" class="list"></div>
+  <div class="row" style="justify-content:flex-end"><button class="btn" onclick="closeSheet('summary')">Close</button></div>
+</div>
+
+<div id="pdetail" class="sheet"><div class="hdl"></div>
+  <h3 id="pdTitle">Practice Detail</h3>
+  <div id="pdMeta" class="mut"></div>
+  <div class="card" id="pdBySec"></div>
+  <div id="pdBlocks" class="list" style="margin-top:8px"></div>
+  <div class="row" style="justify-content:flex-end"><button class="btn" onclick="closeSheet('pdetail')">Close</button></div>
+</div>
+
 <script>
-// ---------- Simple state ----------
-const state = {
+/* ---------- Library ---------- */
+const LIB = {
+  putting:[
+    {id:'put_gate', name:'Gate Drill', type:'points', info:'Make as many as you can out of 24.'},
+    {id:'put_lag', name:'Lag Putting', type:'percent', info:'Into 3ft circle; track makes.'},
+    {id:'put_course', name:'Putting Course', type:'score_to_par', info:'Record net to par.'}
+  ],
+  chipping:[
+    {id:'chip_ladder', name:'Chipping Ladder', type:'points', info:'Vary distance; score ladder.'},
+    {id:'chip_updown', name:'Up & Down', type:'percent', info:'Get up & down rate.'}
+  ],
+  range:[
+    {id:'rng_7i_acc', name:'7-iron Accuracy', type:'percent', info:'Target hits / attempts.'},
+    {id:'rng_driver_fir', name:'Driver FIR', type:'percent', info:'Fairways hit / attempts.'},
+    {id:'rng_carry', name:'Carry Average', type:'other', info:'Enter carry as needed.'}
+  ],
+  course:[
+    {id:'crs_3holes', name:'Play 3 Holes', type:'score_to_par', info:'Record total net to par.'},
+    {id:'crs_9holes', name:'Play 9 Holes', type:'score_to_par', info:'Record total net to par.'}
+  ]
+};
+const SECS = ['putting','chipping','range','course'];
+const allDrills = ()=> SECS.flatMap(s=>LIB[s].map(d=>({...d,section:s})));
+const findDrill = id => allDrills().find(d=>d.id===id);
+
+/* ---------- State ---------- */
+const K = { practices:'gt_practices_v3lite' };
+const S = {
   route:'home',
-  session:{
-    id:null,
-    status:'idle', // idle | draft | active | paused | ended
-    points:0, attempts:0, makes:0,
-    startedAt:null, pausedAt:null, elapsedMs:0,
-    planName:'Default',
-    note:''
-  },
-  presets:[{id:'p_default', name:'Default', pinned:true}],
-  pausedSessions:[],
-  recents:[],
-  streakDays:0
+  session:{id:null,status:'idle',startedAt:null,elapsedMs:0,blocks:[]}, // blocks: {section,drillId,type,data:{points,attempts,makes,toPar,note}}
+  practices: JSON.parse(localStorage.getItem(K.practices)||'[]')
 };
+const el = id=>document.getElementById(id);
+const rid = ()=> 's_'+Math.random().toString(36).slice(2,9);
+const fmt = ms=>{const s=Math.floor(ms/1000),m=String(Math.floor(s/60)).padStart(2,'0'),ss=String(s%60).padStart(2,'0');return m+':'+ss;};
 
-// ---------- Routing ----------
-const pages = {
-  home: document.getElementById('page-home'),
-  log: document.getElementById('page-log'),
-  stats: document.getElementById('page-stats'),
-  library: document.getElementById('page-library'),
-  settings: document.getElementById('page-settings')
-};
-const headerSubtitle = document.getElementById('headerSubtitle');
-
-function goto(name){
-  state.route = name;
-  for(const [k,el] of Object.entries(pages)){
-    el.classList.toggle('hidden', k!==name);
-  }
-  document.querySelectorAll('nav .tab').forEach(tab=>{
-    tab.classList.toggle('active', tab.dataset.page===name);
+/* ---------- Nav ---------- */
+function go(p){
+  S.route=p;
+  ['home','log','stats','lib'].forEach(x=>{
+    el('pg-'+x).style.display = (x===p?'block':'none');
+    document.querySelector(`.tab[data-p="${x}"]`).classList.toggle('active',x===p);
   });
-  headerSubtitle.textContent = name[0].toUpperCase()+name.slice(1);
-  if(name==='home') renderHome();
-  if(name==='log') renderLog();
-  if(name==='library') renderLibrary();
-  if(name==='stats') renderStats();
+  el('hdr').textContent = p[0].toUpperCase()+p.slice(1);
+  if(p==='home') renderHome();
+  if(p==='log') renderLog();
+  if(p==='stats') renderStats();
+  if(p==='lib') renderLib('all');
 }
 
-// ---------- Sheets ----------
-function openSheet(id){ document.getElementById(id).classList.add('open'); }
-function closeSheet(id){ document.getElementById(id).classList.remove('open'); }
+/* ---------- Sheets ---------- */
+function openSheet(id){ el(id).classList.add('open'); }
+function closeSheet(id){ el(id).classList.remove('open'); }
 
-function submitQuickLog(){
-  const type = document.getElementById('qlType').value;
-  const notes = document.getElementById('qlNotes').value.trim();
-  state.recents.unshift({id:rid(), label:type, when:new Date(), notes});
-  closeSheet('quickLogSheet');
-  document.getElementById('qlNotes').value='';
-  renderHome();
-}
-
-// ---------- Helpers ----------
-const rid = ()=>'s_'+Math.random().toString(36).slice(2,9);
-function fmtTime(ms){
-  const s=Math.floor(ms/1000);
-  const mm=String(Math.floor(s/60)).padStart(2,'0');
-  const ss=String(s%60).padStart(2,'0');
-  return mm+':'+ss;
-}
-
-function updateSessionPill(){
-  document.getElementById('sessionPill').textContent = state.session.status[0].toUpperCase()+state.session.status.slice(1);
-}
-
-let timer=null;
-function tick(){
-  if(state.session.status==='active'){
-    const now=Date.now();
-    const base = state.session.startedAt ?? now;
-    const lapse = now - base + (state.session.elapsedMs||0);
-    document.getElementById('elapsedPill').textContent = fmtTime(lapse);
-  }
-}
-
-// ---------- Session controls ----------
-function startDraft(){
-  goto('log');
-  if(state.session.status==='idle' || state.session.status==='ended'){
-    state.session={...state.session,id:rid(),status:'draft',points:0,attempts:0,makes:0,startedAt:null,elapsedMs:0};
-    updateSessionPill();
-    renderLog();
-  }
-}
-function startSession(){
-  if(state.session.status==='draft' || state.session.status==='paused'){
-    state.session.status='active';
-    if(state.session.startedAt===null) state.session.startedAt=Date.now();
-    if(timer) clearInterval(timer);
-    timer=setInterval(tick, 1000);
-    updateSessionPill(); renderLog();
-  }
-}
-function pauseSession(){
-  if(state.session.status==='active'){
-    state.session.status='paused';
-    // accumulate elapsed
-    state.session.elapsedMs = (Date.now()-state.session.startedAt) + (state.session.elapsedMs||0);
-    state.session.startedAt=null;
-    if(timer) clearInterval(timer); timer=null;
-    state.pausedSessions.unshift({...state.session});
-    updateSessionPill(); renderHome(); renderLog();
-  }
-}
-function resumeSession(){
-  const s=state.pausedSessions.shift();
-  if(!s) return;
-  state.session = {...s, status:'active', startedAt:Date.now()};
-  if(timer) clearInterval(timer);
-  timer=setInterval(tick, 1000);
-  updateSessionPill(); renderHome(); renderLog();
-}
-function endSession(){
-  if(state.session.status==='idle') return;
-  // finalize elapsed
-  if(state.session.status==='active'){
-    state.session.elapsedMs = (Date.now()-state.session.startedAt) + (state.session.elapsedMs||0);
-  }
-  state.session.status='ended';
-  if(timer) clearInterval(timer); timer=null;
-  updateSessionPill();
-  // push to recents
-  state.recents.unshift({
-    id:state.session.id,
-    label:`Session • ${state.session.planName}`,
-    when:new Date(),
-    points:state.session.points,
-    attempts:state.session.attempts,
-    makes:state.session.makes,
-    elapsedMs:state.session.elapsedMs,
-    note:state.session.note
-  });
-  // clear current
-  state.session={...state.session,id:null,status:'idle',points:0,attempts:0,makes:0,startedAt:null,elapsedMs:0,note:''};
-  renderHome(); renderLog();
-}
-
-// ---------- Log interactions ----------
-function addPoints(n){
-  if(state.session.status==='idle') return alert('Start the session first.');
-  state.session.points += n;
-  document.getElementById('pointsTotal').textContent = state.session.points;
-}
-function addAttempt(made){
-  if(state.session.status==='idle') return alert('Start the session first.');
-  state.session.attempts += 1;
-  if(made) state.session.makes += 1;
-  const acc = state.session.attempts ? Math.round(100*state.session.makes/state.session.attempts) : 0;
-  document.getElementById('attemptsCount').textContent = state.session.attempts;
-  document.getElementById('makesCount').textContent = state.session.makes;
-  document.getElementById('accPct').textContent = acc + '%';
-}
-function saveAsPreset(){
-  const base='Preset ';
-  let n=1;
-  while(state.presets.find(p=>p.name===base+n)) n++;
-  state.presets.push({id:rid(), name:base+n, pinned:false});
-  alert('Saved current as "'+base+n+'"');
-  renderLibrary();
-}
-
-// ---------- Library ----------
-function renderLibrary(){
-  // drills
-  const drills=[
-    {name:'Gate Drill', type:'points', info:'Make as many as you can out of 24.'},
-    {name:'Lag Putting', type:'percent', info:'Hit into 3ft circle; track makes.'},
-    {name:'Chipping Ladder', type:'other', info:'Vary distance; track attempts.'},
-  ];
-  const dl = document.getElementById('drillList');
-  dl.innerHTML = '';
-  drills.forEach(d=>{
-    const el = document.createElement('div');
-    el.className='item';
-    el.innerHTML = `<div>
-        <div><b>${d.name}</b> <span class="pill">${d.type}</span></div>
-        <div class="muted">${d.info}</div>
-      </div>
-      <button class="btn" onclick="useDrill('${d.name}')">Use</button>`;
-    dl.appendChild(el);
-  });
-
-  // presets
-  const pl = document.getElementById('presetList');
-  pl.innerHTML = '';
-  state.presets.forEach(p=>{
-    const row = document.createElement('div');
-    row.className='item';
-    const disabled = p.pinned ? 'disabled' : '';
-    row.innerHTML = `<div class="row" style="gap:10px">
-        ${p.pinned?'<span class="pill">Pinned</span>':''}
-        <input value="${p.name}" data-id="${p.id}" oninput="editPresetName(event)" style="max-width:220px"/>
+/* ---------- Home ---------- */
+function renderHome(){
+  const c = el('recent'); c.innerHTML='';
+  if(S.practices.length===0){
+    c.innerHTML = `<div class="mut">No practices yet. Start one from Home.</div>`;
+  }else{
+    S.practices.slice().reverse().slice(0,8).forEach(p=>{
+      const when = new Date(p.startedAt).toLocaleString();
+      const by = bySection(p.blocks);
+      const sum = Object.entries(by).map(([k,v])=>cap(k)+': '+v.blocks).join(' • ');
+      const row = document.createElement('div'); row.className='item';
+      row.innerHTML = `<div>
+        <div><b>Practice</b> <span class="mut">${when}</span></div>
+        <div class="mut">${sum}</div>
       </div>
       <div class="row">
-        <button class="btn" onclick="applyPreset('${p.id}')">Use</button>
-        <button class="btn ghost" ${disabled} onclick="deletePreset('${p.id}')">Delete</button>
+        <span class="pill">${fmt(p.elapsedMs||0)}</span>
+        <button class="btn" onclick="openPractice('${p.id}')">View</button>
       </div>`;
-    pl.appendChild(row);
+      c.appendChild(row);
+    });
+  }
+  el('cnt30').textContent = S.practices.length;
+}
+
+/* ---------- Log ---------- */
+let t=null;
+function renderLog(){
+  el('stPill').textContent = S.session.status.toUpperCase();
+  el('sessionPill').textContent = cap(S.session.status);
+  const on = ['draft','active','paused'].includes(S.session.status);
+  el('log-empty').style.display = on?'none':'block';
+  el('log-body').style.display = on?'block':'none';
+  el('btnStart').disabled = !(S.session.status==='draft'||S.session.status==='paused');
+  el('btnPause').disabled = !(S.session.status==='active');
+  el('btnEnd').disabled   = !(S.session.status==='active'||S.session.status==='paused');
+  el('blkCount').textContent = `${S.session.blocks.length} drills`;
+  el('blocks').innerHTML='';
+  S.session.blocks.forEach((b,i)=>{
+    const d = findDrill(b.drillId);
+    const key = `b${i}`;
+    let ui='';
+    if(b.type==='points'){
+      ui = `<div class="row">
+        <button class="btn" onclick="mutBlk(${i},'points',1)">+1</button>
+        <button class="btn" onclick="mutBlk(${i},'points',3)">+3</button>
+        <button class="btn" onclick="mutBlk(${i},'points',-1)">-1</button>
+      </div><div>Total: <b id="${key}_pts">${b.data.points}</b></div>`;
+    }else if(b.type==='percent'){
+      const acc=b.data.attempts?Math.round(100*b.data.makes/b.data.attempts):0;
+      ui = `<div class="row">
+        <button class="btn ok" onclick="mutBlk(${i},'attempt',1)">Made</button>
+        <button class="btn bad" onclick="mutBlk(${i},'attempt',0)">Miss</button>
+      </div><div>Att: <b id="${key}_a">${b.data.attempts}</b> • Makes: <b id="${key}_m">${b.data.makes}</b> • Acc: <b id="${key}_acc">${acc}%</b></div>`;
+    }else if(b.type==='score_to_par'){
+      ui = `<div class="row">
+        <button class="btn" onclick="mutBlk(${i},'toPar',-1)">-1</button>
+        <input id="${key}_in" type="number" value="${b.data.toPar}" oninput="mutBlk(${i},'toParSet',this.value)" style="max-width:100px"/>
+        <button class="btn" onclick="mutBlk(${i},'toPar',1)">+1</button>
+      </div><div>ToPar: <b id="${key}_par">${b.data.toPar}</b></div>`;
+    }else{
+      ui = `<div class="mut">Free-form drill. Add notes.</div>`;
+    }
+    const card=document.createElement('div'); card.className='card';
+    card.innerHTML = `<div class="row" style="justify-content:space-between">
+      <div><b>${d.name}</b> <span class="pill">${cap(b.section)}</span> <span class="pill">${b.type}</span></div>
+      <button class="btn ghost" onclick="rmBlk(${i})">Remove</button>
+    </div>${ui}
+    <div class="row" style="margin-top:6px"><textarea oninput="mutBlk(${i},'note',this.value)" placeholder="Note...">${b.data.note||''}</textarea></div>`;
+    el('blocks').appendChild(card);
+  });
+}
+function mutBlk(i,kind,val){
+  const b=S.session.blocks[i]; const key=`b${i}`;
+  if(kind==='points'){ b.data.points+=val; el(`${key}_pts`).textContent=b.data.points; }
+  if(kind==='attempt'){ b.data.attempts+=1; if(val===1) b.data.makes+=1;
+    const acc=b.data.attempts?Math.round(100*b.data.makes/b.data.attempts):0;
+    el(`${key}_a`).textContent=b.data.attempts; el(`${key}_m`).textContent=b.data.makes; el(`${key}_acc`).textContent=acc+'%'; }
+  if(kind==='toPar'){ b.data.toPar+=val; el(`${key}_par`).textContent=b.data.toPar; const inp=el(`${key}_in`); if(inp) inp.value=b.data.toPar; }
+  if(kind==='toParSet'){ b.data.toPar=parseInt(val||0,10)||0; el(`${key}_par`).textContent=b.data.toPar; }
+  if(kind==='note'){ b.data.note=val; }
+}
+function rmBlk(i){ S.session.blocks.splice(i,1); renderLog(); }
+function startDraft(){ go('log'); if(S.session.status==='idle'||S.session.status==='ended'){ S.session={id:rid(),status:'draft',startedAt:null,elapsedMs:0,blocks:[]}; renderLog(); } }
+function startSession(){ if(S.session.status==='draft'||S.session.status==='paused'){ S.session.status='active'; if(!S.session.startedAt) S.session.startedAt=Date.now();
+  if(t) clearInterval(t); t=setInterval(()=>{ const now=Date.now(); const ms=(S.session.startedAt? now-S.session.startedAt:0)+(S.session.elapsedMs||0); el('elapsed').textContent=fmt(ms); },1000); renderLog(); } }
+function pauseSession(){ if(S.session.status==='active'){ S.session.status='paused'; S.session.elapsedMs=(Date.now()-S.session.startedAt)+(S.session.elapsedMs||0); S.session.startedAt=null; if(t) clearInterval(t); t=null; renderLog(); } }
+function endSession(){
+  if(S.session.status==='idle') return;
+  if(S.session.status==='active'){ S.session.elapsedMs=(Date.now()-S.session.startedAt)+(S.session.elapsedMs||0); }
+  S.session.status='ended'; if(t) clearInterval(t); t=null;
+  const practice={ id:S.session.id, startedAt:S.session.startedAt||Date.now(), endedAt:Date.now(), elapsedMs:S.session.elapsedMs, blocks: JSON.parse(JSON.stringify(S.session.blocks)) };
+  S.practices.push(practice); localStorage.setItem(K.practices, JSON.stringify(S.practices));
+  S.session={id:null,status:'idle',startedAt:null,elapsedMs:0,blocks:[]};
+  alert('Practice saved ✔︎'); go('home');
+}
+
+/* ---------- Add Drill / Quick Drill ---------- */
+function opts(sel, arr, map){ sel.innerHTML=''; arr.forEach(v=>{ const o=document.createElement('option'); o.value=map?map(v):v; o.textContent=map?map(v):v; sel.appendChild(o); }); }
+function buildAddDrillPicker(){ const s=el('adSec').value; const dSel=el('adDrill'); opts(dSel, LIB[s], d=>d.id); }
+function buildQuickDrillPicker(){
+  const sSel=el('qdSec'), dSel=el('qdDrill');
+  if(!sSel.options.length) opts(sSel, SECS);
+  const s=sSel.value||'putting'; opts(dSel, LIB[s], d=>d.id); buildQuickUI();
+}
+function buildQuickUI(){
+  let id=el('qdDrill').value; const d=findDrill(id); const box=el('qdUI'); box.innerHTML='';
+  if(!d) return;
+  let html='';
+  if(d.type==='points'){
+    html=`<div class="row"><button class="btn" onclick="qd('points',1)">+1</button><button class="btn" onclick="qd('points',3)">+3</button><button class="btn" onclick="qd('points',-1)">-1</button></div>
+    <div>Total: <b id="qd_pts">0</b></div>`;
+  }else if(d.type==='percent'){
+    html=`<div class="row"><button class="btn ok" onclick="qd('make',1)">Made</button><button class="btn bad" onclick="qd('make',0)">Miss</button></div>
+    <div>Att: <b id="qd_a">0</b> • Makes: <b id="qd_m">0</b> • Acc: <b id="qd_acc">0%</b></div>`;
+  }else if(d.type==='score_to_par'){
+    html=`<div class="row"><button class="btn" onclick="qd('par',-1)">-1</button><input id="qd_in" type="number" value="0" oninput="qd('parSet',this.value)" style="max-width:100px"/><button class="btn" onclick="qd('par',1)">+1</button></div>
+    <div>ToPar: <b id="qd_par">0</b></div>`;
+  }else{
+    html=`<div class="mut">Free-form drill. Add notes only.</div>`;
+  }
+  html += `<div class="row" style="margin-top:6px"><textarea id="qd_note" placeholder="Notes..."></textarea></div>`;
+  box.innerHTML=html; Q={points:0,attempts:0,makes:0,toPar:0,note:''};
+}
+let Q={points:0,attempts:0,makes:0,toPar:0,note:''};
+function qd(kind,val){
+  if(kind==='points'){ Q.points+=val; el('qd_pts').textContent=Q.points; }
+  if(kind==='make'){ Q.attempts+=1; if(val===1) Q.makes+=1; const acc=Q.attempts?Math.round(100*Q.makes/Q.attempts):0; el('qd_a').textContent=Q.attempts; el('qd_m').textContent=Q.makes; el('qd_acc').textContent=acc+'%'; }
+  if(kind==='par'){ Q.toPar+=val; el('qd_par').textContent=Q.toPar; const inp=el('qd_in'); if(inp) inp.value=Q.toPar; }
+  if(kind==='parSet'){ Q.toPar=parseInt(val||0,10)||0; el('qd_par').textContent=Q.toPar; }
+}
+function saveQuick(){
+  Q.note = el('qd_note').value||'';
+  const sec=el('qdSec').value, drill=findDrill(el('qdDrill').value);
+  const p={ id:rid(), startedAt:Date.now(), endedAt:Date.now(), elapsedMs:0, blocks:[{section:sec, drillId:drill.id, type:drill.type, data:JSON.parse(JSON.stringify(Q))}] };
+  S.practices.push(p); localStorage.setItem(K.practices, JSON.stringify(S.practices));
+  closeSheet('quick'); renderHome();
+}
+function addToSession(){
+  if(S.session.status==='idle') startDraft();
+  const sec=el('adSec').value, d=findDrill(el('adDrill').value);
+  S.session.blocks.push({section:sec, drillId:d.id, type:d.type, data:{points:0,attempts:0,makes:0,toPar:0,note:''}});
+  closeSheet('add'); renderLog();
+}
+
+/* ---------- Summary & Practice Detail ---------- */
+function renderCurrentSummary(){
+  const sum=el('sumBody'); sum.innerHTML='';
+  if(S.session.blocks.length===0){ sum.innerHTML='<div class="mut">No drills yet.</div>'; return; }
+  const by=bySection(S.session.blocks);
+  Object.entries(by).forEach(([sec,v])=>{
+    const div=document.createElement('div'); div.className='item';
+    div.innerHTML=`<div><b>${cap(sec)}</b> — ${v.blocks} drills</div><div class="mut">${v.summary}</div>`;
+    sum.appendChild(div);
+  });
+}
+function openPractice(id){
+  const p=S.practices.find(x=>x.id===id); if(!p) return;
+  el('pdTitle').textContent='Practice Detail';
+  el('pdMeta').textContent=`${new Date(p.startedAt).toLocaleString()} • ${fmt(p.elapsedMs||0)} • ${p.blocks.length} drills`;
+  const by=bySection(p.blocks); let s='';
+  for(const [sec,v] of Object.entries(by)){ s+=`<div class="item"><div><b>${cap(sec)}</b> — ${v.blocks} drills</div><div class="mut">${v.summary}</div></div>`; }
+  el('pdBySec').innerHTML = s || '<div class="mut">No data.</div>';
+  const host=el('pdBlocks'); host.innerHTML='';
+  p.blocks.forEach(b=>{
+    const d=findDrill(b.drillId)||{name:b.drillId};
+    let line=''; if(b.type==='points') line=`Pts ${b.data.points}`;
+    if(b.type==='percent'){ const acc=b.data.attempts?Math.round(100*b.data.makes/b.data.attempts):0; line=`Acc ${acc}% (${b.data.makes}/${b.data.attempts})`; }
+    if(b.type==='score_to_par') line=`ToPar ${b.data.toPar}`;
+    const row=document.createElement('div'); row.className='item';
+    row.innerHTML=`<div><b>${d.name}</b> <span class="pill">${cap(b.section)}</span> <span class="pill">${b.type}</span><div class="mut">${line}${b.data.note?' • '+b.data.note:''}</div></div>`;
+    host.appendChild(row);
+  });
+  openSheet('pdetail');
+}
+
+/* ---------- Stats helpers ---------- */
+const cap = s => s ? s[0].toUpperCase()+s.slice(1):'';
+function bySection(blocks){
+  const out={};
+  blocks.forEach(b=>{
+    out[b.section]=out[b.section]||{blocks:0,points:0,attempts:0,makes:0,toPar:0};
+    out[b.section].blocks++;
+    if(b.type==='points') out[b.section].points+=b.data.points||0;
+    if(b.type==='percent'){ out[b.section].attempts+=b.data.attempts||0; out[b.section].makes+=b.data.makes||0; }
+    if(b.type==='score_to_par') out[b.section].toPar+=b.data.toPar||0;
+  });
+  for(const [sec,v] of Object.entries(out)){
+    const parts=[];
+    if(v.points) parts.push(`Pts ${v.points}`);
+    if(v.attempts) parts.push(`Acc ${Math.round(100*(v.makes||0)/(v.attempts||1))}% (${v.makes}/${v.attempts})`);
+    parts.push(`ToPar ${v.toPar}`);
+    v.summary=parts.join(' • ');
+  }
+  return out;
+}
+function byDrill(practices){
+  const map={};
+  practices.forEach(p=>p.blocks.forEach(b=>{
+    const d=findDrill(b.drillId)||{name:b.drillId,section:b.section,type:b.type};
+    const r=map[b.drillId]||{name:d.name,section:b.section,type:b.type,count:0,points:0,attempts:0,makes:0,toPar:0};
+    r.count++; if(b.type==='points') r.points+=b.data.points||0;
+    if(b.type==='percent'){ r.attempts+=b.data.attempts||0; r.makes+=b.data.makes||0; }
+    if(b.type==='score_to_par') r.toPar+=b.data.toPar||0; map[b.drillId]=r;
+  }));
+  return map;
+}
+const avg = arr => arr.length? Math.round(arr.reduce((a,b)=>a+(b||0),0)/arr.length):0;
+
+function renderStats(){
+  el('statP').textContent = S.practices.length;
+  el('statD').textContent = S.practices.reduce((n,p)=>n+p.blocks.length,0);
+  const a=avg(S.practices.map(p=>p.elapsedMs)); el('statAvg').textContent=a?fmt(a):'–';
+
+  // By section
+  const secHost=el('bySec'); secHost.innerHTML='';
+  const all = S.practices.flatMap(p=>p.blocks);
+  const secMap=bySection(all);
+  for(const [sec,v] of Object.entries(secMap)){
+    const acc = v.attempts? ` • Acc ${Math.round(100*v.makes/v.attempts)}% (${v.makes}/${v.attempts})`:'';
+    const pts = v.points? ` • Pts ${v.points}`:'';
+    const row=document.createElement('div'); row.className='item';
+    row.innerHTML=`<div><b>${cap(sec)}</b> — ${v.blocks} drills${pts}${acc} • ToPar ${v.toPar}</div>`;
+    secHost.appendChild(row);
+  }
+
+  // By drill
+  const dHost=el('byDrill'); dHost.innerHTML='';
+  const dMap=byDrill(S.practices);
+  Object.values(dMap).forEach(v=>{
+    const acc = v.attempts? ` • Acc ${Math.round(100*v.makes/v.attempts)}% (${v.makes}/${v.attempts})`:'';
+    const pts = v.points? ` • Pts ${v.points}`:'';
+    const par = (v.type==='score_to_par')? ` • ToPar ${v.toPar}`:'';
+    const row=document.createElement('div'); row.className='item';
+    row.innerHTML=`<div><b>${v.name}</b> <span class="pill">${cap(v.section)}</span> <span class="pill">${v.type}</span>
+      <div class="mut">Uses: ${v.count}${pts}${acc}${par}</div></div>`;
+    dHost.appendChild(row);
+  });
+
+  // Practice list
+  const plist=el('plist'); plist.innerHTML='';
+  S.practices.slice().reverse().forEach(p=>{
+    const when=new Date(p.startedAt).toLocaleString();
+    const row=document.createElement('div'); row.className='item';
+    row.innerHTML=`<div><b>Practice</b> <span class="mut">${when}</span></div>
+      <div class="row"><span class="pill">${fmt(p.elapsedMs||0)}</span>
+      <button class="btn" onclick="openPractice('${p.id}')">View</button></div>`;
+    plist.appendChild(row);
   });
 }
 
-function switchLib(el){
-  document.querySelectorAll('.chip[data-lib]').forEach(c=>c.classList.remove('active'));
-  el.classList.add('active');
-  const target = el.dataset.lib;
-  document.getElementById('lib-drills').classList.toggle('hidden', target!=='drills');
-  document.getElementById('lib-courses').classList.toggle('hidden', target!=='courses');
-  document.getElementById('lib-presets').classList.toggle('hidden', target!=='presets');
+/* ---------- Library ---------- */
+function renderLib(filter='all'){
+  // header selects for sheets
+  if(!el('adSec').options.length) opts(el('adSec'), SECS);
+  if(!el('qdSec').options.length) opts(el('qdSec'), SECS);
+  buildAddDrillPicker(); buildQuickDrillPicker();
+
+  const host=el('lib'); host.innerHTML='';
+  const drills = filter==='all'? allDrills() : allDrills().filter(d=>d.section===filter);
+  drills.forEach(d=>{
+    const row=document.createElement('div'); row.className='item';
+    row.innerHTML=`<div>
+      <div><b>${d.name}</b> <span class="pill">${cap(d.section)}</span> <span class="pill">${d.type}</span></div>
+      <div class="mut">${d.info}</div>
+    </div>
+    <div class="row">
+      <button class="btn" onclick="openQuickFor('${d.id}')">Quick Log</button>
+      <button class="btn ghost" onclick="addDirect('${d.id}')">Add to Practice</button>
+    </div>`;
+    host.appendChild(row);
+  });
+}
+function filterLib(sec){ renderLib(sec==='all'?'all':sec); }
+function openQuickFor(id){
+  openSheet('quick'); const d=findDrill(id); el('qdSec').value=d.section; buildQuickDrillPicker(); el('qdDrill').value=d.id; buildQuickUI();
+}
+function addDirect(id){
+  const d=findDrill(id); if(!d) return;
+  if(S.session.status==='idle') startDraft();
+  S.session.blocks.push({section:d.section, drillId:d.id, type:d.type, data:{points:0,attempts:0,makes:0,toPar:0,note:''}});
+  go('log');
 }
 
-function addPreset(){
-  const name = document.getElementById('newPresetName').value.trim();
-  if(!name){ alert('Name cannot be empty.'); return; }
-  if(state.presets.some(p=>p.name.toLowerCase()===name.toLowerCase())){
-    alert('Duplicate name.'); return;
-  }
-  state.presets.push({id:rid(), name, pinned:false});
-  document.getElementById('newPresetName').value='';
-  renderLibrary();
-}
-function deletePreset(id){
-  const p = state.presets.find(x=>x.id===id);
-  if(p?.pinned){ alert('Default is pinned and cannot be deleted.'); return; }
-  state.presets = state.presets.filter(x=>x.id!==id);
-  renderLibrary();
-}
-function editPresetName(e){
-  const id = e.target.dataset.id;
-  const v = e.target.value;
-  const p = state.presets.find(x=>x.id===id);
-  if(!p) return;
-  if(p.pinned && v.trim()===''){
-    e.target.value = p.name;
-    alert('Default cannot be renamed to empty/null.');
-    return;
-  }
-  // simple guardrails: disallow empty and duplicates on blur
-  e.target.onblur = ()=>{
-    const val = e.target.value.trim();
-    if(!val){ e.target.value = p.name; alert('Name cannot be empty.'); return; }
-    if(state.presets.some(x=>x.id!==id && x.name.toLowerCase()===val.toLowerCase())){
-      e.target.value = p.name; alert('Duplicate name.'); return;
-    }
-    p.name = val;
-  };
-}
-function applyPreset(id){
-  const p = state.presets.find(x=>x.id===id);
-  if(!p) return;
-  state.session.planName = p.name;
-  document.getElementById('planNamePill').textContent = p.name;
-  goto('log');
-}
-
-// ---------- Home & Stats rendering ----------
-function renderHome(){
-  // resume banner
-  document.getElementById('resumeBanner').classList.toggle('hidden', state.pausedSessions.length===0);
-  // continue list
-  const cont = document.getElementById('continueList');
-  cont.innerHTML = '';
-  if(state.pausedSessions.length===0){
-    cont.textContent = 'No paused sessions.';
-  }else{
-    state.pausedSessions.forEach(s=>{
-      const el=document.createElement('div');
-      el.className='item';
-      el.innerHTML = `<div>
-        <div><b>${s.planName}</b> — ${Math.round((s.elapsedMs||0)/60000)}m</div>
-        <div class="muted">Points ${s.points} • Acc ${s.attempts?Math.round(100*s.makes/s.attempts):0}%</div>
-      </div>
-      <button class="btn" onclick="goto('log');resumeSession()">Resume</button>`;
-      cont.appendChild(el);
-    });
-  }
-  // recents
-  const rec = document.getElementById('recentList'); rec.innerHTML='';
-  if(state.recents.length===0){
-    rec.innerHTML = `<div class="muted">No sessions yet. Use <span class="kbd">Start Practice</span> to begin.</div>`;
-  }else{
-    state.recents.slice(0,6).forEach(r=>{
-      const el=document.createElement('div'); el.className='item';
-      const when = new Date(r.when).toLocaleString();
-      const extra = r.points!==undefined ? ` • Pts ${r.points} • Acc ${r.attempts?Math.round(100*r.makes/r.attempts):0}%` : '';
-      el.innerHTML = `<div>
-        <div><b>${r.label}</b></div>
-        <div class="muted">${when}${extra}</div>
-      </div>
-      <span class="pill">${r.elapsedMs?fmtTime(r.elapsedMs):''}</span>`;
-      rec.appendChild(el);
-    });
-  }
-  // streak (toy calc)
-  document.getElementById('streakDays').textContent = state.streakDays;
-}
-
-function renderStats(){
-  document.getElementById('count30').textContent = state.recents.length;
-}
-
-function renderLog(){
-  document.getElementById('statusPill').textContent = state.session.status.toUpperCase();
-  document.getElementById('planNamePill').textContent = state.session.planName;
-  const has = ['draft','active','paused'].includes(state.session.status);
-  document.getElementById('logEmpty').classList.toggle('hidden', has);
-  document.getElementById('logBody').classList.toggle('hidden', !has);
-  // buttons
-  document.getElementById('btnStart').disabled = !(state.session.status==='draft' || state.session.status==='paused');
-  document.getElementById('btnPause').disabled = !(state.session.status==='active');
-  document.getElementById('btnEnd').disabled   = !(state.session.status==='active' || state.session.status==='paused');
-  // metrics
-  document.getElementById('pointsTotal').textContent = state.session.points;
-  document.getElementById('attemptsCount').textContent = state.session.attempts;
-  document.getElementById('makesCount').textContent = state.session.makes;
-  document.getElementById('accPct').textContent = state.session.attempts? Math.round(100*state.session.makes/state.session.attempts)+'%' : '0%';
-  updateSessionPill();
-}
-
-// ---------- Drill shortcut ----------
-function useDrill(name){
-  state.session.planName = name;
-  goto('log');
-  renderLog();
-}
-
-// ---------- Sample data ----------
-function seedFakeHistory(){
-  const now = Date.now();
-  state.recents = [
-    {id:rid(), label:'Putting Course • Default', when:new Date(now-2*86400000), points:12, attempts:24, makes:16, elapsedMs:38*60000},
-    {id:rid(), label:'Chipping • Ladder', when:new Date(now-4*86400000), points:8, attempts:18, makes:9, elapsedMs:44*60000},
-    {id:rid(), label:'Range • 7-iron', when:new Date(now-6*86400000), points:0, attempts:30, makes:18, elapsedMs:50*60000},
+/* ---------- Seed ---------- */
+function seed(){
+  const now=Date.now();
+  S.practices = [
+    {id:rid(), startedAt:now-6*86400000, endedAt:now-6*86400000+40*60000, elapsedMs:40*60000, blocks:[
+      {section:'putting', drillId:'put_gate', type:'points', data:{points:18,attempts:0,makes:0,toPar:0,note:'Good tempo'}},
+      {section:'range', drillId:'rng_7i_acc', type:'percent', data:{points:0,attempts:25,makes:16,toPar:0,note:''}},
+      {section:'course', drillId:'crs_3holes', type:'score_to_par', data:{points:0,attempts:0,makes:0,toPar:-2,note:''}},
+    ]},
+    {id:rid(), startedAt:now-3*86400000, endedAt:now-3*86400000+55*60000, elapsedMs:55*60000, blocks:[
+      {section:'chipping', drillId:'chip_ladder', type:'points', data:{points:12,attempts:0,makes:0,toPar:0,note:''}},
+      {section:'putting', drillId:'put_lag', type:'percent', data:{points:0,attempts:30,makes:18,toPar:0,note:''}},
+    ]},
   ];
-  state.streakDays = 3;
+  localStorage.setItem(K.practices, JSON.stringify(S.practices));
   renderHome(); renderStats();
 }
 
-// ---------- Init ----------
-renderHome(); renderLibrary(); renderStats();
+/* ---------- Init ---------- */
+function init(){ go('home'); renderLib('all'); }
+init();
 </script>
 </body>
 </html>
