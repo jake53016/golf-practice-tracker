@@ -3,23 +3,19 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Golf Practice — Seeded Template v1.1</title>
-  <!-- Dexie (IndexedDB) -->
+  <title>Golf Practice — Template v1.4 (Fresh)</title>
   <script src="https://unpkg.com/dexie@latest/dist/dexie.min.js"></script>
   <style>
-    :root{
-      --bg:#0e1116; --card:#141922; --muted:#8aa0b6; --text:#e8eef6; --accent:#60a5fa; --accent-2:#22c55e; --danger:#ef4444; --warn:#f59e0b;
-      --radius:16px;
-    }
+    :root{ --bg:#0e1116; --card:#141922; --muted:#8aa0b6; --text:#e8eef6; --accent:#60a5fa; --accent-2:#22c55e; --danger:#ef4444; --radius:16px; }
     *{box-sizing:border-box}
     html,body{margin:0;height:100%;background:var(--bg);color:var(--text);font:16px/1.4 system-ui,Segoe UI,Roboto,Arial}
     a{color:inherit;text-decoration:none}
     button{cursor:pointer}
-    .container{max-width:980px;margin:0 auto;padding:20px}
+    .container{max-width:1100px;margin:0 auto;padding:20px}
     .grid{display:grid;gap:16px}
     .grid-cols-2{grid-template-columns:1fr 1fr}
-    @media(max-width:720px){.grid-cols-2{grid-template-columns:1fr}}
-    .card{background:var(--card);border-radius:var(--radius);padding:16px;box-shadow:0 6px 24px rgba(0,0,0,.25)}
+    @media(max-width:900px){.grid-cols-2{grid-template-columns:1fr}}
+    .card{background:var(--card);border-radius:16px;padding:16px;box-shadow:0 6px 24px rgba(0,0,0,.25)}
     .row{display:flex;gap:10px;align-items:center}
     .row.wrap{flex-wrap:wrap}
     .grow{flex:1}
@@ -30,18 +26,20 @@
     .btn.success{background:var(--accent-2)}
     .btn.danger{background:var(--danger)}
     .btn.ghost{background:transparent;border-color:rgba(255,255,255,.15)}
-    .btn.icon{display:inline-flex;align-items:center;gap:8px}
-    .toolbar{display:flex;gap:10px;align-items:center;justify-content:space-between;margin-bottom:12px}
     input,select,textarea{width:100%;padding:10px 12px;border-radius:12px;border:1px solid rgba(255,255,255,.15);background:#111521;color:var(--text)}
     label{display:block;font-weight:600;margin:6px 0 6px}
     .list{display:grid;gap:10px}
     .item{display:flex;gap:10px;align-items:center;justify-content:space-between;padding:12px;border-radius:12px;background:#0f1420;border:1px solid rgba(255,255,255,.08)}
     .item .meta{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
-    .kbd{font-family:ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;background:rgba(255,255,255,.06);padding:2px 6px;border-radius:8px;font-size:12px}
     .tag{font-size:12px;border:1px dashed rgba(255,255,255,.25);padding:2px 8px;border-radius:999px}
     .hidden{display:none}
-    .danger-zone{border:1px dashed rgba(239,68,68,.5);padding:12px;border-radius:12px}
-    .hr{height:1px;background:rgba(255,255,255,.1);margin:14px 0}
+    .accordion .section{margin-bottom:12px}
+    .accordion .head{display:flex;justify-content:space-between;align-items:center;background:#101522;padding:10px 12px;border-radius:12px;border:1px solid rgba(255,255,255,.08);cursor:pointer}
+    .accordion .body{padding:8px 0 0}
+    .session-sticky{position:sticky;bottom:12px;background:rgba(16,21,34,.9);backdrop-filter:blur(8px);border:1px solid rgba(255,255,255,.08);padding:10px;border-radius:12px}
+    /* modal */
+    .modal{position:fixed;inset:0;background:rgba(0,0,0,.5);display:flex;align-items:center;justify-content:center;z-index:50}
+    .modal>.dialog{background:#141922;border-radius:16px;padding:16px;max-width:520px;width:92%}
   </style>
 </head>
 <body>
@@ -52,74 +50,60 @@
       <div class="row" role="toolbar">
         <button class="btn ghost" data-nav="home">Home</button>
         <button class="btn ghost" data-nav="library">Library</button>
-        <button class="btn ghost" data-nav="plans" disabled>Plans</button>
         <button class="btn ghost" data-nav="stats" disabled>Stats</button>
-        <button class="btn ghost" data-nav="settings" disabled>Settings</button>
+        <button class="btn ghost" data-nav="settings">Settings</button>
       </div>
     </div>
 
-    <!-- VIEWS -->
+    <!-- HOME VIEW (landing) -->
     <div id="view-home" class="grid grid-cols-2">
       <div class="card">
         <h2>Quick Actions</h2>
         <div class="row wrap" style="margin-top:10px">
-          <button class="btn primary" disabled title="Session UI coming next">Start Practice</button>
-          <button class="btn" disabled>Continue Last</button>
+          <button id="btn-start" class="btn primary">Start Practice</button>
+          <button id="btn-continue" class="btn">Continue Last</button>
           <button class="btn" disabled>View Stats</button>
         </div>
-        <div class="hr"></div>
-        <div>
+        <div class="hr" style="height:1px;background:rgba(255,255,255,.1);margin:12px 0"></div>
+        <div class="row wrap">
           <span class="pill">Offline‑first</span>
           <span class="pill">IndexedDB</span>
           <span class="pill">Mobile‑friendly</span>
-          <span class="pill" title="Seeded from your spreadsheet (hardcoded, no Excel reads)">Seeded Defaults</span>
+          <span class="pill">Seeded Defaults</span>
         </div>
       </div>
-
       <div class="card">
         <h2>Recent Sessions</h2>
-        <div class="muted">(Coming soon) Your last 5 sessions will appear here.</div>
-      </div>
-
-      <div class="card">
-        <h2>Favorites</h2>
-        <div class="muted">(Coming soon) Pin drills/games for one‑tap logging.</div>
-      </div>
-
-      <div class="card">
-        <h2>Tips</h2>
-        <p class="muted">Add or edit items in <b>Library</b>. Defaults you set there will prefill your log sheets.</p>
+        <div id="recent-sessions" class="list"></div>
       </div>
     </div>
 
     <!-- LIBRARY VIEW -->
     <div id="view-library" class="hidden">
       <div class="card">
-        <div class="toolbar">
+        <div class="row wrap">
           <h2 class="grow">Library</h2>
-          <div class="row">
-            <input id="lib-search" placeholder="Search by name…" />
-            <select id="lib-filter-section">
-              <option value="">All Sections</option>
-              <option>Putting</option>
-              <option>Chipping</option>
-              <option>Range</option>
-              <option>Course</option>
-            </select>
-            <select id="lib-filter-type">
-              <option value="">All Types</option>
-              <option>Drill</option>
-              <option>Game</option>
-              <option>Course</option>
-              <option>Note</option>
-            </select>
-            <button id="btn-add-item" class="btn success icon">➕ <span>Add Item</span></button>
-          </div>
+          <input id="lib-search" placeholder="Search by name…" />
+          <select id="lib-filter-section">
+            <option value="">All Sections</option>
+            <option>Putting</option>
+            <option>Chipping</option>
+            <option>Range</option>
+            <option>Course</option>
+          </select>
+          <select id="lib-filter-type">
+            <option value="">All Types</option>
+            <option>Drill</option>
+            <option>Game</option>
+            <option>Course</option>
+            <option>Note</option>
+          </select>
+          <button id="btn-add-item" class="btn success">Add Item</button>
         </div>
-
-        <div id="lib-list" class="list"></div>
+        <div id="lib-list" class="list" style="margin-top:10px"></div>
       </div>
 
+      <!-- Editor -->
       <div class="card" id="lib-editor" aria-live="polite">
         <h3 id="editor-title">Add / Edit Item</h3>
         <div class="grid grid-cols-2">
@@ -160,28 +144,34 @@
               </select>
             </div>
             <div>
-              <label>Primary Metric Key</label>
-              <select id="f-primary">
-                <option value="">— None —</option>
-              </select>
+              <label>Primary Metric</label>
+              <select id="f-primary"></select>
             </div>
           </div>
-          <div class="grid" style="grid-column:1/-1">
-            <label>Defaults (key → value)</label>
-            <div class="row wrap" id="defaults-rows"></div>
-            <div style="margin-top:8px"><button id="btn-add-default" class="btn ghost">+ Add Default</button></div>
+
+          <!-- Quick add helpers for optional fields -->
+          <div style="grid-column:1/-1">
+            <div class="row wrap">
+              <span class="muted">Quick add fields:</span>
+              <button class="btn ghost" id="btn-add-distance">+ Distance</button>
+              <button class="btn ghost" id="btn-add-club">+ Club</button>
+              <button class="btn ghost" id="btn-add-release">+ Release</button>
+            </div>
           </div>
+
           <div style="grid-column:1/-1">
             <label>Field Specs (JSON)</label>
-            <textarea id="f-fields" rows="10" spellcheck="false" placeholder='[
-  { "key":"score", "label":"Score", "type":"int", "unit":"pts", "isPrimaryMetric":true, "aggregation":"sum" },
-  { "key":"attempts", "label":"Attempts", "type":"int", "unit":"attempts", "aggregation":"sum" }
-]'></textarea>
+            <textarea id="f-fields" rows="10" spellcheck="false"></textarea>
             <div class="row wrap" style="margin-top:8px">
               <button class="btn ghost" id="btn-template-putting">Template: Putting Drill</button>
               <button class="btn ghost" id="btn-template-range">Template: Range Drill</button>
               <button class="btn ghost" id="btn-template-course">Template: Course</button>
             </div>
+          </div>
+
+          <div class="grid" style="grid-column:1/-1">
+            <label>Defaults</label>
+            <div id="defaults-rows" class="grid"></div>
           </div>
         </div>
         <div class="row" style="margin-top:12px;justify-content:flex-end;gap:10px">
@@ -190,121 +180,203 @@
         </div>
       </div>
 
-      <div class="card danger-zone">
+      <div class="card" style="border:1px dashed rgba(239,68,68,.5)">
         <b>Danger Zone</b>
         <p class="muted">Clear local database (all data). Useful while testing.</p>
         <button id="btn-clear-db" class="btn danger">Clear IndexedDB</button>
       </div>
     </div>
+
+    <!-- SESSION VIEW -->
+    <div id="view-session" class="hidden">
+      <div class="card">
+        <div class="row wrap">
+          <div class="grow">
+            <h2 id="sess-title">Session</h2>
+            <div class="muted" id="sess-sub"></div>
+          </div>
+          <div class="row">
+            <button id="btn-end-session" class="btn danger">End Session</button>
+            <button id="btn-back-home" class="btn ghost">Back</button>
+          </div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="accordion" id="session-sections"></div>
+      </div>
+      <div class="session-sticky row wrap">
+        <div class="muted">Tip: Tap an item to log. Defaults prefill from Library.</div>
+      </div>
+    </div>
+
+    <!-- SETTINGS VIEW -->
+    <div id="view-settings" class="hidden">
+      <div class="card">
+        <div class="toolbar"><h2 class="grow">Settings</h2></div>
+        <div class="grid grid-cols-2">
+          <div class="card">
+            <h3>My Bag — Active Clubs</h3>
+            <div id="clubs-list" class="list" style="margin-top:8px"></div>
+            <div class="row wrap" style="margin-top:10px">
+              <input id="club-new" placeholder="e.g., 2H or 60°"/>
+              <button id="club-add" class="btn success">Add Club</button>
+              <button id="club-reset" class="btn ghost" title="Reset to common set">Reset Default Set</button>
+            </div>
+          </div>
+          <div class="card">
+            <h3>Backup</h3>
+            <div class="row wrap">
+              <button id="btn-export" class="btn">Export JSON</button>
+              <input type="file" id="import-file" accept="application/json"/>
+              <button id="btn-import" class="btn">Import JSON</button>
+            </div>
+            <p class="muted" style="margin-top:8px">All data stays on your device. Export is for manual backups.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- START MODAL (hidden until you click Start Practice) -->
+  <div id="start-modal" class="modal hidden" role="dialog" aria-modal="true">
+    <div class="dialog">
+      <h3>Start Practice</h3>
+      <div class="row wrap" style="margin-top:8px">
+        <div class="grow">
+          <label>Choose Plan</label>
+          <select id="start-plan"></select>
+        </div>
+        <div class="grow">
+          <label>Note (optional)</label>
+          <input id="start-note" placeholder="windy, after work, etc." />
+        </div>
+      </div>
+      <div class="row" style="margin-top:12px;justify-content:flex-end">
+        <button id="start-cancel" class="btn ghost">Cancel</button>
+        <button id="start-go" class="btn primary">Start Session</button>
+      </div>
+    </div>
   </div>
 
   <script>
-  // ------------------------------
-  // SEEDS — Generated from your spreadsheet (hardcoded; no Excel reads)
-  // ------------------------------
-  const SEED_CLUBS = [
-    "Driver","3W","3H","4i","5i","6i","7i","8i","9i","PW","GW","SW","LW","Putter"
+  // ==============================
+  // CONSTANTS
+  // ==============================
+  const PRIMARY_CHOICES = [
+    { key:'score', label:'Points Scored' },
+    { key:'attempts_to_complete', label:'Attempts to Complete' },
+    { key:'to_par', label:'To Par' },
+    { key:'carry_avg', label:'Carry Avg' },
+    { key:'', label:'— None —' }
   ];
+  const PRIMARY_TEMPLATES = {
+    score:{ key:'score', label:'Score', type:'float', unit:'pts', aggregation:'sum', isPrimaryMetric:true },
+    attempts_to_complete:{ key:'attempts_to_complete', label:'Attempts to Complete', type:'int', unit:'attempts', aggregation:'avg', isPrimaryMetric:true },
+    to_par:{ key:'to_par', label:'To Par', type:'int', unit:'toPar', aggregation:'sum', isPrimaryMetric:true },
+    carry_avg:{ key:'carry_avg', label:'Carry Avg', type:'float', unit:'yds', aggregation:'avg', isPrimaryMetric:true }
+  };
+  const RELEASE_ENUM = ['R1','R2','R3'];
+  const SECTIONS = ['Putting','Chipping','Range','Course'];
+  const SEED_CLUBS = ['Driver','3W','3H','4i','5i','6i','7i','8i','9i','PW','GW','SW','LW','Putter'];
 
-  const SECTIONS = ["Putting","Chipping","Range","Course"];
-
+  // Seeded Library (hardcoded; no Excel reads)
   const SEED_LIBRARY = [
     // Putting
-    { name:"Gate Drill", section:"Putting", contentType:"Drill", defaults:{ attempts:10, distance:6 }, fields:[
-      { key:"score", label:"Score", type:"float", unit:"pts", isPrimaryMetric:true, aggregation:"sum" },
-      { key:"attempts", label:"Attempts", type:"int", unit:"attempts", required:true, aggregation:"sum" },
-      { key:"distance", label:"Distance", type:"float", unit:"ft", aggregation:"avg", role:"context" }
+    { name:'Gate Drill', section:'Putting', contentType:'Drill', defaults:{ attempts:10, distance:6 }, fields:[
+      { key:'score', label:'Score', type:'float', unit:'pts', isPrimaryMetric:true, aggregation:'sum' },
+      { key:'attempts', label:'Attempts', type:'int', unit:'attempts', required:true, aggregation:'sum' },
+      { key:'distance', label:'Distance', type:'float', unit:'ft', aggregation:'avg', role:'context' }
     ]},
-    { name:"Circle Drill", section:"Putting", contentType:"Drill", defaults:{ attempts:1, distance:3 }, fields:[
-      { key:"attempts_to_complete", label:"Attempts to Complete", type:"int", unit:"attempts", isPrimaryMetric:true, aggregation:"avg" },
-      { key:"distance", label:"Distance", type:"float", unit:"ft", aggregation:"avg", role:"context" }
+    { name:'Circle Drill', section:'Putting', contentType:'Drill', defaults:{ attempts:1, distance:3 }, fields:[
+      { key:'attempts_to_complete', label:'Attempts to Complete', type:'int', unit:'attempts', isPrimaryMetric:true, aggregation:'avg' },
+      { key:'distance', label:'Distance', type:'float', unit:'ft', aggregation:'avg', role:'context' }
     ]},
-    { name:"Lag Putting Drill", section:"Putting", contentType:"Drill", defaults:{ attempts:5 }, fields:[
-      { key:"score", label:"Score", type:"float", unit:"pts", isPrimaryMetric:true, aggregation:"sum" },
-      { key:"attempts", label:"Attempts", type:"int", unit:"attempts", required:true, aggregation:"sum" },
-      { key:"distance", label:"Distance", type:"float", unit:"ft", aggregation:"avg", role:"context" }
+    { name:'Lag Putting Drill', section:'Putting', contentType:'Drill', defaults:{ attempts:5 }, fields:[
+      { key:'score', label:'Score', type:'float', unit:'pts', isPrimaryMetric:true, aggregation:'sum' },
+      { key:'attempts', label:'Attempts', type:'int', unit:'attempts', required:true, aggregation:'sum' },
+      { key:'distance', label:'Distance', type:'float', unit:'ft', aggregation:'avg', role:'context' }
     ]},
-    { name:"2 Putt Game", section:"Putting", contentType:"Game", defaults:{ attempts:1 }, fields:[
-      { key:"attempts_to_complete", label:"Attempts to Complete", type:"int", unit:"attempts", isPrimaryMetric:true, aggregation:"avg" }
+    { name:'2 Putt Game', section:'Putting', contentType:'Game', defaults:{ attempts:1 }, fields:[
+      { key:'attempts_to_complete', label:'Attempts to Complete', type:'int', unit:'attempts', isPrimaryMetric:true, aggregation:'avg' }
     ]},
 
-    // Chipping (Short Game)
-    { name:"Chipping Release Drill", section:"Chipping", contentType:"Drill", defaults:{ attempts:10 }, fields:[
-      { key:"score", label:"Score", type:"float", unit:"pts", isPrimaryMetric:true, aggregation:"sum" },
-      { key:"attempts", label:"Attempts", type:"int", unit:"attempts", required:true, aggregation:"sum" },
-      { key:"distance", label:"Distance", type:"float", unit:"yds", aggregation:"avg", role:"context" },
-      { key:"club", label:"Club", type:"enum", enumValues: SEED_CLUBS, role:"context", required:true },
-      { key:"release", label:"Release Type", type:"enum", enumValues:["R1","R2","R3"], role:"context", required:true }
+    // Chipping
+    { name:'Chipping Release Drill', section:'Chipping', contentType:'Drill', defaults:{ attempts:10 }, fields:[
+      { key:'score', label:'Score', type:'float', unit:'pts', isPrimaryMetric:true, aggregation:'sum' },
+      { key:'attempts', label:'Attempts', type:'int', unit:'attempts', required:true, aggregation:'sum' },
+      { key:'distance', label:'Distance', type:'float', unit:'yds', aggregation:'avg', role:'context' },
+      { key:'club', label:'Club', type:'enum', enumValues: SEED_CLUBS, role:'context', required:true },
+      { key:'release', label:'Release Type', type:'enum', enumValues: RELEASE_ENUM, role:'context', required:true }
     ]},
-    { name:"Landing Spot Towel  Drill", section:"Chipping", contentType:"Drill", defaults:{ attempts:10 }, fields:[
-      { key:"score", label:"Score", type:"float", unit:"pts", isPrimaryMetric:true, aggregation:"sum" },
-      { key:"attempts", label:"Attempts", type:"int", unit:"attempts", required:true, aggregation:"sum" },
-      { key:"distance", label:"Distance", type:"float", unit:"yds", aggregation:"avg", role:"context" },
-      { key:"club", label:"Club", type:"enum", enumValues: SEED_CLUBS, role:"context", required:true },
-      { key:"release", label:"Release Type", type:"enum", enumValues:["R1","R2","R3"], role:"context", required:true }
+    { name:'Landing Spot Towel Drill', section:'Chipping', contentType:'Drill', defaults:{ attempts:10 }, fields:[
+      { key:'score', label:'Score', type:'float', unit:'pts', isPrimaryMetric:true, aggregation:'sum' },
+      { key:'attempts', label:'Attempts', type:'int', unit:'attempts', required:true, aggregation:'sum' },
+      { key:'distance', label:'Distance', type:'float', unit:'yds', aggregation:'avg', role:'context' },
+      { key:'club', label:'Club', type:'enum', enumValues: SEED_CLUBS, role:'context', required:true },
+      { key:'release', label:'Release Type', type:'enum', enumValues: RELEASE_ENUM, role:'context', required:true }
     ]},
-    { name:"Up & Down Game", section:"Chipping", contentType:"Game", defaults:{ attempts:9 }, fields:[
-      { key:"attempts_to_complete", label:"Attempts to Complete", type:"int", unit:"attempts", isPrimaryMetric:true, aggregation:"avg" },
-      { key:"club", label:"Club", type:"enum", enumValues: SEED_CLUBS, role:"context", required:true },
-      { key:"release", label:"Release Type", type:"enum", enumValues:["R1","R2","R3"], role:"context", required:true }
+    { name:'Up & Down Game', section:'Chipping', contentType:'Game', defaults:{ attempts:9 }, fields:[
+      { key:'attempts_to_complete', label:'Attempts to Complete', type:'int', unit:'attempts', isPrimaryMetric:true, aggregation:'avg' },
+      { key:'club', label:'Club', type:'enum', enumValues: SEED_CLUBS, role:'context', required:true },
+      { key:'release', label:'Release Type', type:'enum', enumValues: RELEASE_ENUM, role:'context', required:true }
     ]},
 
     // Range
-    { name:"Wedge Carry", section:"Range", contentType:"Drill", defaults:{ attempts:5 }, fields:[
-      { key:"score", label:"Score", type:"float", unit:"pts", isPrimaryMetric:true, aggregation:"sum" },
-      { key:"attempts", label:"Attempts", type:"int", unit:"attempts", required:true, aggregation:"sum" },
-      { key:"club", label:"Club", type:"enum", enumValues: SEED_CLUBS, role:"context", required:true },
-      { key:"distance", label:"Distance", type:"float", unit:"yds", aggregation:"avg", role:"context" },
-      { key:"carry_avg", label:"Carry Avg", type:"float", unit:"yds", aggregation:"avg" }
+    { name:'Wedge Carry', section:'Range', contentType:'Drill', defaults:{ attempts:5 }, fields:[
+      { key:'score', label:'Score', type:'float', unit:'pts', isPrimaryMetric:true, aggregation:'sum' },
+      { key:'attempts', label:'Attempts', type:'int', unit:'attempts', required:true, aggregation:'sum' },
+      { key:'club', label:'Club', type:'enum', enumValues: SEED_CLUBS, role:'context', required:true },
+      { key:'distance', label:'Distance', type:'float', unit:'yds', aggregation:'avg', role:'context' },
+      { key:'carry_avg', label:'Carry Avg', type:'float', unit:'yds', aggregation:'avg' }
     ]},
-    { name:"Fades", section:"Range", contentType:"Drill", defaults:{ attempts:5 }, fields:[
-      { key:"score", label:"Score", type:"float", unit:"pts", isPrimaryMetric:true, aggregation:"sum" },
-      { key:"attempts", label:"Attempts", type:"int", unit:"attempts", required:true, aggregation:"sum" },
-      { key:"club", label:"Club", type:"enum", enumValues: SEED_CLUBS, role:"context", required:true },
-      { key:"distance", label:"Distance", type:"float", unit:"yds", aggregation:"avg", role:"context" }
+    { name:'Fades', section:'Range', contentType:'Drill', defaults:{ attempts:5 }, fields:[
+      { key:'score', label:'Score', type:'float', unit:'pts', isPrimaryMetric:true, aggregation:'sum' },
+      { key:'attempts', label:'Attempts', type:'int', unit:'attempts', required:true, aggregation:'sum' },
+      { key:'club', label:'Club', type:'enum', enumValues: SEED_CLUBS, role:'context', required:true },
+      { key:'distance', label:'Distance', type:'float', unit:'yds', aggregation:'avg', role:'context' }
     ]},
-    { name:"Draws", section:"Range", contentType:"Drill", defaults:{ attempts:5 }, fields:[
-      { key:"score", label:"Score", type:"float", unit:"pts", isPrimaryMetric:true, aggregation:"sum" },
-      { key:"attempts", label:"Attempts", type:"int", unit:"attempts", required:true, aggregation:"sum" },
-      { key:"club", label:"Club", type:"enum", enumValues: SEED_CLUBS, role:"context", required:true },
-      { key:"distance", label:"Distance", type:"float", unit:"yds", aggregation:"avg", role:"context" }
+    { name:'Draws', section:'Range', contentType:'Drill', defaults:{ attempts:5 }, fields:[
+      { key:'score', label:'Score', type:'float', unit:'pts', isPrimaryMetric:true, aggregation:'sum' },
+      { key:'attempts', label:'Attempts', type:'int', unit:'attempts', required:true, aggregation:'sum' },
+      { key:'club', label:'Club', type:'enum', enumValues: SEED_CLUBS, role:'context', required:true },
+      { key:'distance', label:'Distance', type:'float', unit:'yds', aggregation:'avg', role:'context' }
     ]},
-    { name:"Start Line", section:"Range", contentType:"Drill", defaults:{ attempts:10 }, fields:[
-      { key:"score", label:"Score", type:"float", unit:"pts", isPrimaryMetric:true, aggregation:"sum" },
-      { key:"attempts", label:"Attempts", type:"int", unit:"attempts", required:true, aggregation:"sum" },
-      { key:"club", label:"Club", type:"enum", enumValues: SEED_CLUBS, role:"context", required:true },
-      { key:"distance", label:"Distance", type:"float", unit:"yds", aggregation:"avg", role:"context" }
+    { name:'Start Line', section:'Range', contentType:'Drill', defaults:{ attempts:10 }, fields:[
+      { key:'score', label:'Score', type:'float', unit:'pts', isPrimaryMetric:true, aggregation:'sum' },
+      { key:'attempts', label:'Attempts', type:'int', unit:'attempts', required:true, aggregation:'sum' },
+      { key:'club', label:'Club', type:'enum', enumValues: SEED_CLUBS, role:'context', required:true },
+      { key:'distance', label:'Distance', type:'float', unit:'yds', aggregation:'avg', role:'context' }
     ]},
-    { name:"GIR Iron Game", section:"Range", contentType:"Game", defaults:{ attempts:10 }, fields:[
-      { key:"score", label:"Score", type:"float", unit:"pts", isPrimaryMetric:true, aggregation:"sum" },
-      { key:"attempts", label:"Attempts", type:"int", unit:"attempts", required:true, aggregation:"sum" },
-      { key:"club", label:"Club", type:"enum", enumValues: SEED_CLUBS, role:"context" }
+    { name:'GIR Iron Game', section:'Range', contentType:'Game', defaults:{ attempts:10 }, fields:[
+      { key:'score', label:'Score', type:'float', unit:'pts', isPrimaryMetric:true, aggregation:'sum' },
+      { key:'attempts', label:'Attempts', type:'int', unit:'attempts', required:true, aggregation:'sum' },
+      { key:'club', label:'Club', type:'enum', enumValues: SEED_CLUBS, role:'context' }
     ]},
 
     // Course
-    { name:"F&G Putting Course", section:"Course", contentType:"Course", defaults:{ holes:18 }, fields:[
-      { key:"to_par", label:"To Par", type:"int", unit:"toPar", isPrimaryMetric:true, aggregation:"sum" },
-      { key:"holes", label:"Holes", type:"int", unit:"holes", required:true, aggregation:"sum" }
+    { name:'F&G Putting Course', section:'Course', contentType:'Course', defaults:{ holes:18 }, fields:[
+      { key:'to_par', label:'To Par', type:'int', unit:'toPar', isPrimaryMetric:true, aggregation:'sum' },
+      { key:'holes', label:'Holes', type:'int', unit:'holes', required:true, aggregation:'sum' }
     ]},
-    { name:"F&G Loop Course", section:"Course", contentType:"Course", defaults:{ holes:3 }, fields:[
-      { key:"to_par", label:"To Par", type:"int", unit:"toPar", isPrimaryMetric:true, aggregation:"sum" },
-      { key:"holes", label:"Holes", type:"int", unit:"holes", required:true, aggregation:"sum" }
+    { name:'F&G Loop Course', section:'Course', contentType:'Course', defaults:{ holes:3 }, fields:[
+      { key:'to_par', label:'To Par', type:'int', unit:'toPar', isPrimaryMetric:true, aggregation:'sum' },
+      { key:'holes', label:'Holes', type:'int', unit:'holes', required:true, aggregation:'sum' }
     ]},
-    { name:"Trackman Course", section:"Course", contentType:"Course", defaults:{ holes:18 }, fields:[
-      { key:"to_par", label:"To Par", type:"int", unit:"toPar", isPrimaryMetric:true, aggregation:"sum" },
-      { key:"holes", label:"Holes", type:"int", unit:"holes", required:true, aggregation:"sum" }
+    { name:'Trackman Course', section:'Course', contentType:'Course', defaults:{ holes:18 }, fields:[
+      { key:'to_par', label:'To Par', type:'int', unit:'toPar', isPrimaryMetric:true, aggregation:'sum' },
+      { key:'holes', label:'Holes', type:'int', unit:'holes', required:true, aggregation:'sum' }
     ]},
 
-    // Mental Game — Notes (available everywhere; not in Default plan)
-    { name:"2-Step Reset", section:"Range", contentType:"Note", defaults:{}, fields:[ { key:"note", label:"Note", type:"text", role:"note" } ], appliesTo:{ sections:["Putting","Chipping","Range","Course"] }, tags:["mental"] },
-    { name:"Think Box - Play Box", section:"Range", contentType:"Note", defaults:{}, fields:[ { key:"note", label:"Note", type:"text", role:"note" } ], appliesTo:{ sections:["Putting","Chipping","Range","Course"] }, tags:["mental"] },
-    { name:"One Cue", section:"Range", contentType:"Note", defaults:{}, fields:[ { key:"note", label:"Note", type:"text", role:"note" } ], appliesTo:{ sections:["Putting","Chipping","Range","Course"] }, tags:["mental"] },
-    { name:"Breathing", section:"Range", contentType:"Note", defaults:{}, fields:[ { key:"note", label:"Note", type:"text", role:"note" } ], appliesTo:{ sections:["Putting","Chipping","Range","Course"] }, tags:["mental"] }
+    // Mental Game — Notes
+    { name:'2-Step Reset', section:'Range', contentType:'Note', defaults:{}, fields:[ { key:'note', label:'Note', type:'text', role:'note' } ], appliesTo:{ sections:['Putting','Chipping','Range','Course'] }, tags:['mental'] },
+    { name:'Think Box - Play Box', section:'Range', contentType:'Note', defaults:{}, fields:[ { key:'note', label:'Note', type:'text', role:'note' } ], appliesTo:{ sections:['Putting','Chipping','Range','Course'] }, tags:['mental'] },
+    { name:'One Cue', section:'Range', contentType:'Note', defaults:{}, fields:[ { key:'note', label:'Note', type:'text', role:'note' } ], appliesTo:{ sections:['Putting','Chipping','Range','Course'] }, tags:['mental'] },
+    { name:'Breathing', section:'Range', contentType:'Note', defaults:{}, fields:[ { key:'note', label:'Note', type:'text', role:'note' } ], appliesTo:{ sections:['Putting','Chipping','Range','Course'] }, tags:['mental'] }
   ];
 
-  // ------------------------------
-  // Dexie schema & setup
-  // ------------------------------
+  // ==============================
+  // Dexie schema & setup (+migration for clubs.active)
+  // ==============================
   const db = new Dexie('golf_practice');
   db.version(1).stores({
     library_items: '++id, name, section, contentType, updatedAt, active',
@@ -315,348 +387,173 @@
     clubs: 'id',
     settings: 'key'
   });
+  db.version(2).stores({
+    library_items: '++id, name, section, contentType, updatedAt, active',
+    plans: '++id, name, isDefault, updatedAt',
+    plan_items: '++id, planId, libraryItemId, order',
+    sessions: '++id, date, planId',
+    entries: '++id, sessionId, libraryItemId, section, contentType',
+    clubs: 'id, active',
+    settings: 'key'
+  }).upgrade(async tx => {
+    const clubs = await tx.table('clubs').toArray();
+    for (const c of clubs) { if (typeof c.active === 'undefined') { c.active = true; await tx.table('clubs').put(c); } }
+  });
 
-  // Seed default data if first run
+  // ==============================
+  // Seed default data if first run (v1.4)
+  // ==============================
   async function seedIfNeeded(){
-    const hasRun = await db.settings.get('seed_template_v1_1');
+    const hasRun = await db.settings.get('seed_template_v1_4');
     if(hasRun) return;
-
     await db.transaction('rw', db.library_items, db.plans, db.plan_items, db.clubs, db.settings, async () => {
-      // Clubs
       await db.clubs.clear();
-      await db.clubs.bulkPut(SEED_CLUBS.map(id=>({id})));
-
-      // Library (from spreadsheet + tweaks)
+      await db.clubs.bulkPut(SEED_CLUBS.map(id=>({id, active:true})));
       await db.library_items.clear();
       const now = Date.now();
-      for(const item of SEED_LIBRARY){
-        await db.library_items.add({
-          ...item,
-          active: true,
-          createdAt: now,
-          updatedAt: now
-        });
-      }
-
-      // Create Default plan with all non-Note items in section order
+      for(const item of SEED_LIBRARY){ await db.library_items.add({ ...item, active:true, createdAt:now, updatedAt:now }); }
+      // Default plan: include all non-Note items in section order
       const defaultPlanId = await db.plans.add({ name:'Default', isDefault:true, createdAt:now, updatedAt:now });
-      const all = await db.library_items.toArray();
-      const byName = new Map(all.map(i=>[i.name, i.id]));
-      const order = [];
-      for(const sec of SECTIONS){
-        for(const item of SEED_LIBRARY){
-          if(item.section===sec && item.contentType!=="Note"){
-            order.push(item.name);
-          }
-        }
-      }
-      let idx = 1;
-      for(const n of order){
-        const id = byName.get(n);
-        if(id){ await db.plan_items.add({ planId: defaultPlanId, libraryItemId: id, order: idx++ }); }
-      }
-
-      await db.settings.put({ key:'seed_template_v1_1', value:true });
+      const all = await db.library_items.toArray(); const byName = new Map(all.map(i=>[i.name, i.id]));
+      const order = []; for(const sec of SECTIONS){ for(const item of SEED_LIBRARY){ if(item.section===sec && item.contentType!=="Note") order.push(item.name); } }
+      let idx=1; for(const n of order){ const id = byName.get(n); if(id){ await db.plan_items.add({ planId: defaultPlanId, libraryItemId: id, order: idx++ }); } }
+      await db.settings.put({ key:'seed_template_v1_4', value:true });
     });
   }
 
-  // ------------------------------
-  // Mini router (no page reload)
-  // ------------------------------
-  const views = {
-    home: document.getElementById('view-home'),
-    library: document.getElementById('view-library')
-  };
-  function show(id){
-    Object.values(views).forEach(v=>v.classList.add('hidden'));
-    views[id].classList.remove('hidden');
-    localStorage.setItem('lastView', id);
-  }
+  // ==============================
+  // Helpers & Router
+  // ==============================
+  const $ = sel => document.querySelector(sel);
+  function fmtDate(ts){ const d=new Date(ts); return d.toLocaleString(); }
+  function show(id){ ['home','library','session','settings'].forEach(v=> $('#view-'+v).classList.add('hidden')); $('#view-'+id).classList.remove('hidden'); localStorage.setItem('lastView', id); if(id==='home') renderRecentSessions(); if(id==='library') renderLibraryList(); if(id==='settings') renderClubs(); }
+  document.querySelectorAll('[data-nav]').forEach(btn=> btn.addEventListener('click', ()=>{ const id = btn.getAttribute('data-nav'); if(['home','library','settings','stats'].includes(id)) show(id); }));
 
-  // Nav buttons
-  document.querySelectorAll('[data-nav]').forEach(btn=>{
-    btn.addEventListener('click', ()=>{
-      const id = btn.getAttribute('data-nav');
-      if(!views[id]) return;
-      show(id);
-      if(id==='library') renderLibraryList();
-    });
+  // ==============================
+  // Active clubs helper + event bridge
+  // ==============================
+  async function getActiveClubs(){ const arr = await db.clubs.toArray(); return arr.filter(c=>c.active).map(c=>c.id); }
+  function emitClubsChanged(){ window.dispatchEvent(new CustomEvent('clubs-changed')); }
+
+  // ==============================
+  // Home: Start/Continue + Recent Sessions
+  // ==============================
+  $('#btn-start').addEventListener('click', openStartModal);
+  $('#btn-continue').addEventListener('click', async ()=>{
+    const last = await db.sessions.orderBy('id').last(); if(!last){ alert('No sessions yet. Start one!'); return; } renderSessionView(last.id);
   });
+  $('#start-cancel').addEventListener('click', ()=> $('#start-modal').classList.add('hidden'));
+  $('#start-go').addEventListener('click', async ()=>{
+    const planId = Number($('#start-plan').value||0); const note = $('#start-note').value.trim(); if(!planId) return alert('Pick a plan');
+    const id = await db.sessions.add({ date: Date.now(), planId, note, createdAt: Date.now() });
+    $('#start-modal').classList.add('hidden'); renderSessionView(id);
+  });
+  async function openStartModal(){ const sel=$('#start-plan'); sel.innerHTML=''; const plans = await db.plans.toArray(); plans.sort((a,b)=> (b.isDefault?1:0)-(a.isDefault?1:0) || a.name.localeCompare(b.name)); for(const p of plans){ const opt=document.createElement('option'); opt.value=p.id; opt.textContent=p.name + (p.isDefault?' (Default)':''); sel.appendChild(opt);} $('#start-note').value=''; $('#start-modal').classList.remove('hidden'); }
+  async function renderRecentSessions(){ const cont=$('#recent-sessions'); cont.innerHTML=''; const sessions = await db.sessions.reverse().limit(5).toArray(); if(!sessions.length){ cont.innerHTML='<div class="muted">No sessions yet.</div>'; return; } for(const s of sessions){ const plan = await db.plans.get(s.planId); const div=document.createElement('div'); div.className='item'; div.innerHTML=`<div class="meta"><strong>${plan?.name||'Plan'}</strong><span class="pill">${fmtDate(s.date)}</span></div><div class="row"><button class="btn ghost" data-open="${s.id}">Open</button></div>`; cont.appendChild(div);} cont.querySelectorAll('[data-open]').forEach(b=> b.addEventListener('click', ()=> renderSessionView(Number(b.dataset.open)))); }
 
-  // ------------------------------
+  // ==============================
   // Library: list + filters
-  // ------------------------------
-  const libList = document.getElementById('lib-list');
-  const fSearch = document.getElementById('lib-search');
-  const fFilterSection = document.getElementById('lib-filter-section');
-  const fFilterType = document.getElementById('lib-filter-type');
-
-  [fSearch, fFilterSection, fFilterType].forEach(el=>{
-    el.addEventListener('input', renderLibraryList);
-  });
-
+  // ==============================
+  const libList = $('#lib-list'); const fSearch=$('#lib-search'); const fFilterSection=$('#lib-filter-section'); const fFilterType=$('#lib-filter-type');
+  [fSearch, fFilterSection, fFilterType].forEach(el=> el.addEventListener('input', renderLibraryList));
   function secOrder(s){ return SECTIONS.indexOf(s); }
+  async function renderLibraryList(){ let items = await db.library_items.toArray(); const q=(fSearch.value||'').toLowerCase(); const sec=fFilterSection.value; const typ=fFilterType.value; items=items.filter(i=>i.active!==false); if(q) items=items.filter(i=> i.name.toLowerCase().includes(q)); if(sec) items=items.filter(i=> i.section===sec); if(typ) items=items.filter(i=> i.contentType===typ); items.sort((a,b)=> (secOrder(a.section)-secOrder(b.section)) || a.name.localeCompare(b.name)); libList.innerHTML=''; if(!items.length){ libList.innerHTML='<div class="muted">No items found.</div>'; return; } for(const it of items){ const div=document.createElement('div'); div.className='item'; const tags=(it.tags||[]).map(t=>`<span class="tag">${t}</span>`).join(' '); div.innerHTML=`<div class="meta"><strong>${it.name}</strong><span class="pill">${it.section}</span><span class="pill">${it.contentType}</span>${tags}</div><div class="row"><button class="btn ghost" data-edit="${it.id}">Edit</button><button class="btn ghost" data-toggle="${it.id}">${it.active===false?'Activate':'Hide'}</button></div>`; libList.appendChild(div);} libList.querySelectorAll('[data-edit]').forEach(b=> b.addEventListener('click', ()=> loadEditor(parseInt(b.dataset.edit)))); libList.querySelectorAll('[data-toggle]').forEach(b=> b.addEventListener('click', ()=> toggleActive(parseInt(b.dataset.toggle)))); }
+  async function toggleActive(id){ const it=await db.library_items.get(id); if(!it) return; await db.library_items.update(id,{active:!(it.active!==false),updatedAt:Date.now()}); renderLibraryList(); }
 
-  async function renderLibraryList(){
-    const q = (fSearch.value||'').toLowerCase();
-    const sec = fFilterSection.value;
-    const typ = fFilterType.value;
+  // ==============================
+  // Library: editor (primary dropdown + smart defaults + quick add)
+  // ==============================
+  const editor = { title:$('#editor-title'), name:$('#f-name'), section:$('#f-section'), type:$('#f-type'), tags:$('#f-tags'), active:$('#f-active'), primary:$('#f-primary'), fields:$('#f-fields'), defaultsRows:$('#defaults-rows'), cancel:$('#btn-cancel'), save:$('#btn-save'), addDistance:$('#btn-add-distance'), addClub:$('#btn-add-club'), addRelease:$('#btn-add-release') };
+  let editingId=null;
+  function populatePrimary(selectEl,key){ selectEl.innerHTML=''; for(const ch of PRIMARY_CHOICES){ const o=document.createElement('option'); o.value=ch.key; o.textContent=ch.label; selectEl.appendChild(o);} selectEl.value=key??''; }
+  populatePrimary(editor.primary,'');
 
-    let items = await db.library_items.toArray();
-    items = items.filter(it=>it.active!==false);
-
-    if(q) items = items.filter(it=> it.name.toLowerCase().includes(q));
-    if(sec) items = items.filter(it=> it.section===sec);
-    if(typ) items = items.filter(it=> it.contentType===typ);
-
-    items.sort((a,b)=> (secOrder(a.section) - secOrder(b.section)) || a.name.localeCompare(b.name));
-
-    libList.innerHTML = '';
-    if(!items.length){
-      libList.innerHTML = `<div class="muted">No items found. Try clearing filters.</div>`;
-      return;
-    }
-
-    for(const it of items){
-      const div = document.createElement('div');
-      div.className = 'item';
-      const tags = (it.tags||[]).map(t=>`<span class="tag">${t}</span>`).join(' ');
-      div.innerHTML = `
-        <div class="meta">
-          <strong>${it.name}</strong>
-          <span class="pill">${it.section}</span>
-          <span class="pill">${it.contentType}</span>
-          ${tags}
-        </div>
-        <div class="row">
-          <button class="btn ghost" data-edit="${it.id}">Edit</button>
-          <button class="btn ghost" data-toggle="${it.id}">${it.active===false? 'Activate':'Hide'}</button>
-          <span class="kbd">id:${it.id}</span>
-        </div>`;
-      libList.appendChild(div);
-    }
-
-    libList.querySelectorAll('[data-edit]').forEach(b=> b.addEventListener('click', ()=> loadEditor(parseInt(b.dataset.edit))));
-    libList.querySelectorAll('[data-toggle]').forEach(b=> b.addEventListener('click', ()=> toggleActive(parseInt(b.dataset.toggle))));
+  async function renderDefaultsUI(){ editor.defaultsRows.innerHTML=''; let fields; try{ fields=JSON.parse(editor.fields.value||'[]'); } catch{ fields=[]; }
+    const activeClubs = await getActiveClubs();
+    for(const f of fields){ const row=document.createElement('div'); row.className='row'; row.style.alignItems='center'; row.dataset.defkey=f.key; const lb=document.createElement('label'); lb.style.minWidth='160px'; lb.textContent=(f.label||f.key)+' default'; lb.htmlFor='def-'+f.key; row.appendChild(lb); let control;
+      if(f.type==='enum'){ control=document.createElement('select'); control.className='def-input'; control.id='def-'+f.key; const values=(f.key==='club')? activeClubs : (f.enumValues||[]); for(const v of values){ const opt=document.createElement('option'); opt.value=v; opt.textContent=v; control.appendChild(opt);} if(values.length===0){ const opt=document.createElement('option'); opt.value=''; opt.textContent='(no options)'; control.appendChild(opt);} }
+      else if(f.type==='int'||f.type==='float'){ control=document.createElement('input'); control.type='number'; control.step=(f.type==='float'?'0.1':'1'); control.className='def-input'; control.id='def-'+f.key; }
+      else { control=document.createElement('input'); control.type='text'; control.className='def-input'; control.id='def-'+f.key; }
+      row.appendChild(control); editor.defaultsRows.appendChild(row); }
   }
-
-  async function toggleActive(id){
-    const it = await db.library_items.get(id);
-    if(!it) return;
-    await db.library_items.update(id, { active: !(it.active!==false), updatedAt:Date.now() });
-    renderLibraryList();
-  }
-
-  // ------------------------------
-  // Library: editor
-  // ------------------------------
-  const editor = {
-    title: document.getElementById('editor-title'),
-    name: document.getElementById('f-name'),
-    section: document.getElementById('f-section'),
-    type: document.getElementById('f-type'),
-    tags: document.getElementById('f-tags'),
-    active: document.getElementById('f-active'),
-    primary: document.getElementById('f-primary'),
-    fields: document.getElementById('f-fields'),
-    defaultsRows: document.getElementById('defaults-rows'),
-    cancel: document.getElementById('btn-cancel'),
-    save: document.getElementById('btn-save'),
-    addDefault: document.getElementById('btn-add-default'),
-  };
-
-  let editingId = null;
-
-  function refreshPrimaryOptions(preserveSelection=true){
-    let selected = preserveSelection ? editor.primary.value : '';
-    let fields;
-    try { fields = JSON.parse(editor.fields.value || '[]'); } catch(e){ fields = []; }
-    editor.primary.innerHTML = '<option value="">— None —</option>';
-    if(Array.isArray(fields)){
-      fields.forEach(f=>{
-        if(!f || !f.key) return;
-        const opt = document.createElement('option');
-        opt.value = f.key;
-        const text = (f.label || f.key) + ' (' + f.key + ')';
-        opt.textContent = text;
-        editor.primary.appendChild(opt);
-      });
-      const marked = fields.find(f=>f.isPrimaryMetric);
-      const pick = (marked && marked.key) || selected;
-      if(pick && editor.primary.querySelector('option[value="'+pick+'"]')){
-        editor.primary.value = pick;
-      } else {
-        editor.primary.value = '';
-      }
-    }
-  }
-
-  // Update options whenever fields JSON changes
-  editor.fields.addEventListener('input', ()=> refreshPrimaryOptions(true));
-
-  function clearEditor(){
-    editingId = null;
-    editor.title.textContent = 'Add / Edit Item';
-    editor.name.value = '';
-    editor.section.value = '';
-    editor.type.value = '';
-    editor.tags.value = '';
-    editor.active.value = 'true';
-    editor.primary.value = '';
-    editor.fields.value = '';
-    editor.defaultsRows.innerHTML = '';
-    refreshPrimaryOptions(false);
-  }
-
-  function addDefaultRow(k='', v=''){
-    const wrap = document.createElement('div');
-    wrap.className = 'row';
-    wrap.style.marginTop = '6px';
-    wrap.innerHTML = `
-      <input class="def-k" placeholder="key (e.g., attempts)" value="${k}"/>
-      <input class="def-v" placeholder="value (e.g., 20)" value="${v}"/>
-      <button class="btn ghost">✖</button>
-    `;
-    wrap.querySelector('button').addEventListener('click', ()=> wrap.remove());
-    editor.defaultsRows.appendChild(wrap);
-  }
-
-  function defaultsFromUI(){
-    const rows = editor.defaultsRows.querySelectorAll('.row');
-    const obj = {};
-    rows.forEach(r=>{
-      const k = r.querySelector('.def-k').value.trim();
-      const vRaw = r.querySelector('.def-v').value.trim();
-      if(!k) return;
-      let v = vRaw;
-      if(vRaw.toLowerCase() === 'null') v = null;
-      else if(vRaw === '') v = '';
-      else if(!isNaN(Number(vRaw))) v = Number(vRaw);
-      obj[k] = v;
-    });
-    return obj;
-  }
-
-  function defaultsToUI(obj={}){
-    editor.defaultsRows.innerHTML='';
-    Object.entries(obj).forEach(([k,v])=> addDefaultRow(k, String(v)));
-  }
-
-  async function loadEditor(id){
-    const it = await db.library_items.get(id);
-    if(!it) return;
-    editingId = id;
-    editor.title.textContent = `Editing: ${it.name}`;
-    editor.name.value = it.name;
-    editor.section.value = it.section;
-    editor.type.value = it.contentType;
-    editor.tags.value = (it.tags||[]).join(', ');
-    editor.active.value = (it.active!==false).toString();
-    editor.fields.value = JSON.stringify(it.fields||[], null, 2);
-    refreshPrimaryOptions(false);
-    editor.primary.value = (it.fields?.find(f=>f.isPrimaryMetric)?.key)||'';
-    defaultsToUI(it.defaults||{});
-    window.scrollTo({top:document.body.scrollHeight, behavior:'smooth'});
-  }
-
-  // Template helpers
-  document.getElementById('btn-template-putting').addEventListener('click', ()=>{
-    editor.fields.value = JSON.stringify([
-      { key:'score', label:'Score', type:'int', unit:'pts', isPrimaryMetric:true, aggregation:'sum' },
-      { key:'attempts', label:'Attempts', type:'int', unit:'attempts', aggregation:'sum', required:true },
-      { key:'distance', label:'Distance', type:'float', unit:'ft', aggregation:'avg', role:'context' }
-    ], null, 2);
-    refreshPrimaryOptions(false);
-  });
-  document.getElementById('btn-template-range').addEventListener('click', async ()=>{
-    const clubs = await db.clubs.toArray();
-    editor.fields.value = JSON.stringify([
-      { key:'score', label:'Score', type:'int', unit:'pts', isPrimaryMetric:true, aggregation:'sum' },
-      { key:'attempts', label:'Attempts', type:'int', unit:'attempts', aggregation:'sum', required:true },
-      { key:'club', label:'Club', type:'enum', enumValues: clubs.map(c=>c.id), role:'context', required:true },
-      { key:'distance', label:'Distance', type:'float', unit:'yds', aggregation:'avg', role:'context' }
-    ], null, 2);
-    refreshPrimaryOptions(false);
-  });
-  document.getElementById('btn-template-course').addEventListener('click', ()=>{
-    editor.fields.value = JSON.stringify([
-      { key:'to_par', label:'To Par', type:'int', unit:'toPar', isPrimaryMetric:true, aggregation:'sum' },
-      { key:'holes', label:'Holes', type:'int', unit:'holes', required:true, aggregation:'sum' }
-    ], null, 2);
-    refreshPrimaryOptions(false);
-  });
-
-  // Save item (Create/Update)
-  editor.save.addEventListener('click', async ()=>{
-    const name = editor.name.value.trim();
-    const section = editor.section.value;
-    const contentType = editor.type.value;
-    const tags = editor.tags.value.split(',').map(s=>s.trim()).filter(Boolean);
-    const active = editor.active.value === 'true';
-    const primaryKey = editor.primary.value.trim();
-
-    if(!name) return alert('Name is required.');
-    if(!section) return alert('Section is required.');
-    if(!contentType) return alert('Type is required.');
-
-    let fields;
-    try{ fields = JSON.parse(editor.fields.value || '[]'); }
-    catch(e){ return alert('Field Specs JSON is invalid.'); }
-
-    if(!Array.isArray(fields) || fields.length===0){
-      return alert('At least one FieldSpec is required.');
-    }
-
-    if(primaryKey){
-      const hit = fields.find(f=>f.key===primaryKey);
-      if(!hit) return alert('Primary Metric Key must match one of the field keys.');
-      fields = fields.map(f=> ({...f, isPrimaryMetric: f.key===primaryKey}));
-    } else {
-      // Clear any previous isPrimaryMetric marks if None selected
-      fields = fields.map(f=> ({...f, isPrimaryMetric: false}));
-    }
-
-    const defaults = defaultsFromUI();
-
-    // Uniqueness (case-insensitive)
-    const dupe = await db.library_items.filter(x => x.name.toLowerCase() === name.toLowerCase() && x.id !== editingId).first();
-    if(dupe){
-      return alert('An item with this name already exists. Choose a different name.');
-    }
-
-    const payload = { name, section, contentType, tags, active, fields, defaults, updatedAt: Date.now() };
-
-    if(editingId){
-      await db.library_items.update(editingId, payload);
-    }else{
-      payload.createdAt = Date.now();
-      await db.library_items.add(payload);
-    }
-
-    clearEditor();
-    renderLibraryList();
-    alert('Saved.');
-  });
-
-  // Add default row
-  editor.addDefault.addEventListener('click', ()=> addDefaultRow());
-  document.getElementById('btn-add-item').addEventListener('click', ()=>{ clearEditor(); addDefaultRow(); window.scrollTo({top:document.body.scrollHeight, behavior:'smooth'}); });
+  function gatherDefaultsFromUI(){ const rows = editor.defaultsRows.querySelectorAll('[data-defkey]'); const obj={}; rows.forEach(r=>{ const k=r.dataset.defkey; const el=r.querySelector('.def-input'); if(!el) return; let v = el.value; if(el.tagName==='INPUT'&&el.type==='number'){ v = el.value===''?null:Number(el.value);} obj[k]=v; }); return obj; }
+  function clearEditor(){ editingId=null; editor.title.textContent='Add / Edit Item'; editor.name.value=''; editor.section.value=''; editor.type.value=''; editor.tags.value=''; editor.active.value='true'; populatePrimary(editor.primary,''); editor.fields.value=''; editor.defaultsRows.innerHTML=''; }
+  async function loadEditor(id){ const it=await db.library_items.get(id); if(!it) return; editingId=id; editor.title.textContent=`Editing: ${it.name}`; editor.name.value=it.name; editor.section.value=it.section; editor.type.value=it.contentType; editor.tags.value=(it.tags||[]).join(', '); editor.active.value=(it.active!==false).toString(); editor.fields.value=JSON.stringify(it.fields||[],null,2); populatePrimary(editor.primary,(it.fields||[]).find(f=>f.isPrimaryMetric)?.key||''); await renderDefaultsUI(); const defs=it.defaults||{}; for(const [k,v] of Object.entries(defs)){ const el=$('#def-'+k); if(el){ el.value = v; } } window.scrollTo({top:document.body.scrollHeight, behavior:'smooth'}); }
+  editor.fields.addEventListener('input', ()=> renderDefaultsUI());
+  editor.addDistance.addEventListener('click', ()=>{ let fs; try{ fs=JSON.parse(editor.fields.value||'[]'); }catch{ fs=[]; } if(!fs.find(f=>f.key==='distance')) fs.push({key:'distance',label:'Distance',type:'float',unit:'ft',aggregation:'avg',role:'context'}); editor.fields.value=JSON.stringify(fs,null,2); renderDefaultsUI(); });
+  editor.addClub.addEventListener('click', async()=>{ let fs; try{ fs=JSON.parse(editor.fields.value||'[]'); }catch{ fs=[]; } if(!fs.find(f=>f.key==='club')){ const clubs=await getActiveClubs(); fs.push({key:'club',label:'Club',type:'enum',enumValues:clubs,role:'context',required:true}); } editor.fields.value=JSON.stringify(fs,null,2); renderDefaultsUI(); });
+  editor.addRelease.addEventListener('click', ()=>{ let fs; try{ fs=JSON.parse(editor.fields.value||'[]'); }catch{ fs=[]; } if(!fs.find(f=>f.key==='release')) fs.push({key:'release',label:'Release Type',type:'enum',enumValues:RELEASE_ENUM,role:'context',required:true}); editor.fields.value=JSON.stringify(fs,null,2); renderDefaultsUI(); });
+  $('#btn-template-putting').addEventListener('click', ()=>{ editor.fields.value=JSON.stringify([{key:'score',label:'Score',type:'int',unit:'pts',isPrimaryMetric:true,aggregation:'sum'},{key:'attempts',label:'Attempts',type:'int',unit:'attempts',aggregation:'sum',required:true},{key:'distance',label:'Distance',type:'float',unit:'ft',aggregation:'avg',role:'context'}],null,2); populatePrimary(editor.primary,'score'); renderDefaultsUI(); });
+  $('#btn-template-range').addEventListener('click', async()=>{ const clubs=await getActiveClubs(); editor.fields.value=JSON.stringify([{key:'score',label:'Score',type:'int',unit:'pts',isPrimaryMetric:true,aggregation:'sum'},{key:'attempts',label:'Attempts',type:'int',unit:'attempts',aggregation:'sum',required:true},{key:'club',label:'Club',type:'enum',enumValues:clubs,role:'context',required:true},{key:'distance',label:'Distance',type:'float',unit:'yds',aggregation:'avg',role:'context'}],null,2); populatePrimary(editor.primary,'score'); renderDefaultsUI(); });
+  $('#btn-template-course').addEventListener('click', ()=>{ editor.fields.value=JSON.stringify([{key:'to_par',label:'To Par',type:'int',unit:'toPar',isPrimaryMetric:true,aggregation:'sum'},{key:'holes',label:'Holes',type:'int',unit:'holes',required:true,aggregation:'sum'}],null,2); populatePrimary(editor.primary,'to_par'); renderDefaultsUI(); });
+  editor.save.addEventListener('click', async()=>{ const name=editor.name.value.trim(); const section=editor.section.value; const contentType=editor.type.value; const tags=editor.tags.value.split(',').map(s=>s.trim()).filter(Boolean); const active=editor.active.value==='true'; const primaryKey=editor.primary.value.trim(); if(!name) return alert('Name is required.'); if(!section) return alert('Section is required.'); if(!contentType) return alert('Type is required.'); let fields; try{ fields=JSON.parse(editor.fields.value||'[]'); }catch(e){ return alert('Field Specs JSON is invalid.'); } if(!Array.isArray(fields)||fields.length===0){ return alert('At least one FieldSpec is required.'); } if(primaryKey){ if(!fields.find(f=>f.key===primaryKey)) fields.push({...PRIMARY_TEMPLATES[primaryKey]}); fields=fields.map(f=>({...f,isPrimaryMetric:f.key===primaryKey})); } else { fields=fields.map(f=>({...f,isPrimaryMetric:false})); } const defaults=gatherDefaultsFromUI(); const dupe=await db.library_items.filter(x=>x.name.toLowerCase()===name.toLowerCase() && x.id!==editingId).first(); if(dupe) return alert('An item with this name already exists.'); const payload={name,section,contentType,tags,active,fields,defaults,updatedAt:Date.now()}; if(editingId){ await db.library_items.update(editingId,payload); } else { payload.createdAt=Date.now(); await db.library_items.add(payload); } clearEditor(); renderLibraryList(); alert('Saved.'); });
+  $('#btn-add-item').addEventListener('click', ()=>{ clearEditor(); renderDefaultsUI(); window.scrollTo({top:document.body.scrollHeight, behavior:'smooth'}); });
   editor.cancel.addEventListener('click', clearEditor);
-
-  // Init + clear
-  async function init(){
-    await seedIfNeeded();
-    const last = localStorage.getItem('lastView') || 'home';
-    show(last);
-    if(last==='library') renderLibraryList();
-  }
-
-  document.getElementById('btn-clear-db').addEventListener('click', async ()=>{
-    if(!confirm('This will remove ALL local data. Proceed?')) return;
-    await db.delete();
-    location.reload();
+  window.addEventListener('clubs-changed', ()=>{ // refresh defaults UI if editor visible
+    if(!$('#view-library').classList.contains('hidden')) renderDefaultsUI();
   });
 
+  // ==============================
+  // Settings: Clubs manager + backup
+  // ==============================
+  async function renderClubs(){ const container=$('#clubs-list'); container.innerHTML=''; let clubs=await db.clubs.toArray(); clubs.sort((a,b)=> a.id.localeCompare(b.id)); if(!clubs.length){ container.innerHTML='<div class="muted">No clubs yet. Add some below.</div>'; } for(const c of clubs){ const row=document.createElement('div'); row.className='item'; row.innerHTML=`<div class="meta"><strong>${c.id}</strong>${c.active?'<span class="pill">Active</span>':'<span class="pill">Hidden</span>'}</div><div class="row"><button class="btn ghost" data-toggle="${c.id}">${c.active?'Deactivate':'Activate'}</button><button class="btn ghost" data-remove="${c.id}">Remove</button></div>`; container.appendChild(row);} container.querySelectorAll('[data-toggle]').forEach(b=> b.addEventListener('click', async()=>{ const id=b.dataset.toggle; const c=await db.clubs.get(id); if(!c) return; await db.clubs.put({id,active:!c.active}); renderClubs(); emitClubsChanged(); })); container.querySelectorAll('[data-remove]').forEach(b=> b.addEventListener('click', async()=>{ const id=b.dataset.remove; if(!confirm('Remove '+id+' from bag?')) return; await db.clubs.delete(id); renderClubs(); emitClubsChanged(); })); }
+  $('#club-add').addEventListener('click', async()=>{ const inp=$('#club-new'); const id=(inp.value||'').trim(); if(!id) return; await db.clubs.put({id,active:true}); inp.value=''; renderClubs(); emitClubsChanged(); });
+  $('#club-reset').addEventListener('click', async()=>{ if(!confirm('Reset clubs to default set?')) return; await db.clubs.clear(); await db.clubs.bulkPut(SEED_CLUBS.map(id=>({id,active:true}))); renderClubs(); emitClubsChanged(); });
+  $('#btn-export').addEventListener('click', async()=>{ const data={ library_items:await db.library_items.toArray(), plans:await db.plans.toArray(), plan_items:await db.plan_items.toArray(), sessions:await db.sessions.toArray(), entries:await db.entries.toArray(), clubs:await db.clubs.toArray(), settings:await db.settings.toArray() }; const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'}); const url=URL.createObjectURL(blob); const a=document.createElement('a'); a.href=url; a.download='golf_practice_backup.json'; a.click(); URL.revokeObjectURL(url); });
+  $('#btn-import').addEventListener('click', async()=>{ const file=$('#import-file').files[0]; if(!file) return alert('Choose a JSON file first.'); const text=await file.text(); let data; try{ data=JSON.parse(text); }catch{ return alert('Invalid JSON.'); } if(!confirm('This will overwrite existing data where ids collide. Continue?')) return; await db.transaction('rw', db.library_items, db.plans, db.plan_items, db.sessions, db.entries, db.clubs, db.settings, async()=>{ if(data.library_items) await db.library_items.bulkPut(data.library_items); if(data.plans) await db.plans.bulkPut(data.plans); if(data.plan_items) await db.plan_items.bulkPut(data.plan_items); if(data.sessions) await db.sessions.bulkPut(data.sessions); if(data.entries) await db.entries.bulkPut(data.entries); if(data.clubs) await db.clubs.bulkPut(data.clubs); if(data.settings) await db.settings.bulkPut(data.settings); }); alert('Imported.'); emitClubsChanged(); });
+
+  // ==============================
+  // Session view + dynamic logging
+  // ==============================
+  $('#btn-back-home').addEventListener('click', ()=> show('home'));
+  $('#btn-end-session').addEventListener('click', async()=>{ if(!currentSessionId) return; const s=await db.sessions.get(currentSessionId); if(!s) return; s.endedAt=Date.now(); await db.sessions.put(s); show('home'); });
+  let currentSessionId=null;
+
+  async function renderSessionView(sessionId){
+    currentSessionId = sessionId;
+    const s = await db.sessions.get(sessionId); if(!s){ alert('Session not found'); return; }
+    const plan = await db.plans.get(s.planId);
+    $('#sess-title').textContent = `${plan?.name || 'Session'}`;
+    $('#sess-sub').textContent = `${fmtDate(s.date)}${s.note? ' · '+s.note:''}`;
+
+    // collect items in plan
+    const planItems = await db.plan_items.where('planId').equals(s.planId).toArray();
+    planItems.sort((a,b)=> a.order-b.order);
+    const items = [];
+    for(const pi of planItems){ const li = await db.library_items.get(pi.libraryItemId); if(li && li.active!==false){ items.push(li); } }
+
+    // group by section
+    const bySec = {}; for(const sec of SECTIONS) bySec[sec]=[]; for(const it of items){ bySec[it.section].push(it); }
+
+    const container = $('#session-sections'); container.innerHTML='';
+    for(const sec of SECTIONS){ const list = bySec[sec]; if(!list.length) continue; const sectionDiv=document.createElement('div'); sectionDiv.className='section'; sectionDiv.innerHTML = `<div class="head"><strong>${sec}</strong><span class="muted">${list.length} items</span></div><div class="body"></div>`; const body=sectionDiv.querySelector('.body'); for(const it of list){ body.appendChild(renderSessionItemCard(s.id, it)); } sectionDiv.querySelector('.head').addEventListener('click', ()=> body.classList.toggle('hidden')); container.appendChild(sectionDiv); }
+    show('session');
+  }
+
+  function renderSessionItemCard(sessionId, item){ const wrap=document.createElement('div'); wrap.className='item'; const tags=(item.tags||[]).map(t=>`<span class="tag">${t}</span>`).join(' '); wrap.innerHTML=`<div class="meta"><strong>${item.name}</strong><span class="pill">${item.contentType}</span>${tags}</div><div class="row"><button class="btn" data-log>Log</button></div>`; const logBtn = wrap.querySelector('[data-log]'); logBtn.addEventListener('click', async()=>{ const form = await buildEntryForm(sessionId, item); wrap.after(form); form.scrollIntoView({behavior:'smooth', block:'start'}); }); // existing entries
+    const entriesDiv=document.createElement('div'); entriesDiv.style.marginTop='8px'; wrap.appendChild(entriesDiv); (async()=>{ const entries = await db.entries.where({ sessionId, libraryItemId:item.id }).toArray(); if(entries.length){ const list=document.createElement('div'); list.className='list'; for(const e of entries){ list.appendChild(renderEntrySummary(e,item)); } entriesDiv.appendChild(list); } })(); return wrap; }
+
+  function renderEntrySummary(entry, item){ const div=document.createElement('div'); div.className='item'; const primary=(item.fields||[]).find(f=>f.isPrimaryMetric)?.key; let main = primary && entry.data ? entry.data[primary] : undefined; if(main===undefined && entry.data){ if('score' in entry.data) main=entry.data.score; else if('attempts_to_complete' in entry.data) main=entry.data.attempts_to_complete; else if('to_par' in entry.data) main=entry.data.to_par; else if('carry_avg' in entry.data) main=entry.data.carry_avg; } const sub=new Date(entry.endedAt||entry.startedAt||Date.now()).toLocaleTimeString(); div.innerHTML=`<div class="meta"><strong>${item.name}</strong><span class="pill">${main!==undefined? 'Primary: '+main:'Logged'}</span></div><div class="row"><span class="muted">${sub}</span></div>`; return div; }
+
+  async function buildEntryForm(sessionId, item){ const formWrap=document.createElement('div'); formWrap.className='card'; const formId=`form-${sessionId}-${item.id}-${Math.random().toString(36).slice(2)}`; formWrap.innerHTML=`<h3>Log: ${item.name}</h3><form id="${formId}"></form><div class="row" style="justify-content:flex-end;margin-top:10px"><button class="btn ghost" data-cancel>Cancel</button><button class="btn primary" data-save>Save Entry</button></div>`; const form=formWrap.querySelector('form'); const activeClubs=await getActiveClubs(); const defaults=item.defaults||{}; const fields=(item.fields||[]).filter(f=>!f.appliesTo || !f.appliesTo.sections || f.appliesTo.sections.includes(item.section)); for(const f of fields){ const fieldId=`${formId}-${f.key}`; const group=document.createElement('div'); group.style.marginTop='8px'; const label=document.createElement('label'); label.textContent=f.label||f.key; label.setAttribute('for',fieldId); let input; if(f.type==='enum'){ input=document.createElement('select'); const options=(f.key==='club')? activeClubs : (f.enumValues||[]); for(const v of options){ const opt=document.createElement('option'); opt.value=v; opt.textContent=v; input.appendChild(opt);} if(defaults[f.key]!==undefined) input.value=defaults[f.key]; }
+      else if(f.type==='int'||f.type==='float'){ input=document.createElement('input'); input.type='number'; input.step=(f.type==='float'?'0.1':'1'); if(defaults[f.key]!==undefined) input.value=defaults[f.key]; }
+      else if(f.type==='bool'){ input=document.createElement('input'); input.type='checkbox'; input.checked = Boolean(defaults[f.key]); }
+      else if(f.type==='text' || f.role==='note'){ input=document.createElement('textarea'); input.rows=3; if(defaults[f.key]!==undefined) input.value=defaults[f.key]; }
+      else { input=document.createElement('input'); input.type='text'; if(defaults[f.key]!==undefined) input.value=defaults[f.key]; }
+      input.id=fieldId; input.name=f.key; if(f.required) input.required=true; input.dataset.type=f.type; group.appendChild(label); group.appendChild(input); form.appendChild(group); }
+    formWrap.querySelector('[data-cancel]').addEventListener('click', ()=> formWrap.remove());
+    formWrap.querySelector('[data-save]').addEventListener('click', async (e)=>{ e.preventDefault(); const data={}; for(const el of form.elements){ if(!el.name) continue; let v=el.value; const t=el.dataset.type; if(el.type==='checkbox'){ v=el.checked; } else if(t==='int'){ v = el.value===''?null:Number.parseInt(el.value,10); } else if(t==='float'){ v = el.value===''?null:Number.parseFloat(el.value); } data[el.name]=v; } for(const f of fields){ if(f.required && (data[f.key]===undefined || data[f.key]===null || data[f.key]==='')){ return alert(`Missing required: ${f.label||f.key}`); } } const entry={ sessionId, libraryItemId:item.id, section:item.section, contentType:item.contentType, data, startedAt:Date.now(), endedAt:Date.now() }; await db.entries.add(entry); formWrap.remove(); renderSessionView(sessionId); });
+    return formWrap; }
+
+  // ==============================
+  // Clear DB
+  // ==============================
+  $('#btn-clear-db').addEventListener('click', async ()=>{ if(!confirm('This will remove ALL local data. Proceed?')) return; await db.delete(); location.reload(); });
+
+  // ==============================
+  // INIT — always land on HOME; modal hidden by default
+  // ==============================
+  async function init(){ await seedIfNeeded(); localStorage.setItem('lastView','home'); show('home'); const m=document.getElementById('start-modal'); if(m) m.classList.add('hidden'); }
   init();
   </script>
 </body>
